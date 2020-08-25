@@ -1,0 +1,27 @@
+version: '3.5'
+
+services:
+
+  redis:
+    image: redis@sha256:09c33840ec47815dc0351f1eca3befe741d7105b3e95bc8fdb9a7e4985b9e1e5
+    network_mode: host
+
+  vdns:
+    depends_on:
+      - redis
+    build: .
+    environment:
+      REDIS_HOST: localhost
+      DEBUG: "yes"
+    network_mode: host
+
+  nginx:
+    depends_on:
+      - vdns
+    build: nginx
+    network_mode: host
+
+  test:
+    image: nginx
+    ports:
+      - "8080:80"
