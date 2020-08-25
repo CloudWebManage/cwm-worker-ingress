@@ -9,6 +9,19 @@ jobs:
     - env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        sudo apt-get install -y python3-venv redis-tools &&\
+        python3 -m venv venv &&\
+        venv/bin/python3 -m pip install --upgrade pip &&\
+        venv/bin/python3 -m pip install --upgrade setuptools wheel &&\
+        venv/bin/python -m pip install -r requirements.txt &&\
+        venv/bin/python -m pip install -e . &&\
+        docker run -d --rm --name redis -p 6379:6379 redis
+        [ "$?" != "0" ] && exit 1
+        while ! redis-cli ping; do sleep 1; done
+        DEBUG=yes REDIS_HOST=172.17.0.1 venv/bin/cwm_worker_ingress vdns 10053 &
+        echo 172.17.0.1 cwm-worker-test.com | sudo tee -a /etc/hosts &&\
+        . venv/bin/activate &&\
+        ./run_tests.sh &&\
         echo "${GITHUB_TOKEN}" | docker login https://docker.pkg.github.com -u cloudwebmanage --password-stdin &&\
         docker pull docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
         docker pull docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
