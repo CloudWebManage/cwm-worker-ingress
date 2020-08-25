@@ -12,4 +12,9 @@ for TEST in tests/test_*.sh; do
         ALL_RES=1
     fi
 done
-exit $ALL_RES
+[ "${ALL_RES}" != "0" ] && exit 1
+
+echo "-- tests/assert_metrics.py"
+sleep 7
+! python3 tests/assert_metrics.py && echo FAILED && exit 1
+echo OK
