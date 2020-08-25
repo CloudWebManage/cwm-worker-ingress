@@ -51,8 +51,6 @@ def get_domain_ipv4(redis_pool, domain):
         try:
             return socket.gethostbyname(internal_hostname)
         except socket.gaierror:
-            if DEBUG:
-                print("get_domain_ipv4: failed to gethostbyname {}".format(internal_hostname), flush=True)
             return None
     else:
         return None

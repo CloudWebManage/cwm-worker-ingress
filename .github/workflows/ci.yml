@@ -16,12 +16,18 @@ jobs:
         venv/bin/python -m pip install -r requirements.txt &&\
         venv/bin/python -m pip install -e . &&\
         docker run -d --rm --name redis -p 6379:6379 redis
-        [ "$?" != "0" ] && exit 1
+        [ "$?" != "0" ] && echo failed to initialize for tests && exit 1
         while ! redis-cli ping; do sleep 1; done
-        DEBUG=yes REDIS_HOST=172.17.0.1 venv/bin/cwm_worker_ingress vdns 10053 &
+        DEBUG=yes REDIS_HOST=172.17.0.1 venv/bin/cwm_worker_ingress vdns 10053 >log.txt 2>&1 &
         echo 172.17.0.1 cwm-worker-test.com | sudo tee -a /etc/hosts &&\
         . venv/bin/activate &&\
-        ./run_tests.sh &&\
+        ./run_tests.sh
+        TESTS_RES=$?
+        echo "-- vdns server log --"
+        cat log.txt
+        echo "-- vdns server metrics --"
+        cat .metrics
+        [ "${TESTS_RES}" != "0" ] && echo tests failed && exit 1
         echo "${GITHUB_TOKEN}" | docker login https://docker.pkg.github.com -u cloudwebmanage --password-stdin &&\
         docker pull docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
         docker pull docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
