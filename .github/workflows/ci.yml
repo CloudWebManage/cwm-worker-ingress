@@ -1,0 +1,23 @@
+name: CI
+on:
+  push:
+jobs:
+  deploy:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        docker-compose build &&\
+        echo "${GITHUB_TOKEN}" | docker login https://docker.pkg.github.com -u cloudwebmanage --password-stdin &&\
+        docker tag cwm-worker-ingress_vdns:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:$GITHUB_SHA &&\
+        docker tag cwm-worker-ingress_nginx:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:$GITHUB_SHA &&\
+        docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:$GITHUB_SHA &&\
+        docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:$GITHUB_SHA &&\
+        if [ "${GITHUB_REF}" == "refs/heads/master" ]; then
+          docker tag cwm-worker-ingress_vdns:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
+          docker tag cwm-worker-ingress_nginx:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
+          docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
+          docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest
+        fi

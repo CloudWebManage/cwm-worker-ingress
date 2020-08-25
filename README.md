@@ -123,3 +123,26 @@ Access it - should respond very quickly
 ```
 time curl localhost
 ```
+
+## Publishing Docker Images
+
+Login to GitHub Packages, for password use a personal access token
+
+```
+docker login https://docker.pkg.github.com -u USERNAME
+```
+
+Build images
+
+```
+docker-compose build
+```
+
+Tag and push
+
+```
+docker tag cwm-worker-ingress_vdns:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
+docker tag cwm-worker-ingress_nginx:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
+docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
+docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest
+```
