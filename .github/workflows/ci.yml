@@ -24,14 +24,20 @@ jobs:
         echo 172.17.0.1 cwm-worker-test.com | sudo tee -a /etc/hosts &&\
         . venv/bin/activate
         [ "$?" != "0" ] && exit 1
-        ( timeout -k 60s 60s ./run_tests.sh )
-        TESTS_RES=$?
-        echo TESTS_RES=$TESTS_RES
+        echo ERROR > status.txt
+        ( ./run_tests.sh && echo OK > status.txt ) & PID=$!
+        ELAPSED_SECONDS=0
+        while true; do
+          sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
+          ! kill -0 $PID && break
+          [ "${ELAPSED_SECONDS}" == "60" ] && echo TIMEOUT > status.txt && break
+        done
+        echo "status.txt=$(cat status.txt)"
         echo "-- vdns server log --"
         cat log.txt
         echo "-- vdns server metrics --"
         cat .metrics
-        [ "${TESTS_RES}" != "0" ] && echo tests failed && exit 1
+        [ "$(cat status.txt)" != "OK" ] && echo tests failed && exit 1
         echo "${GITHUB_TOKEN}" | docker login https://docker.pkg.github.com -u cloudwebmanage --password-stdin &&\
         docker pull docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
         docker pull docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
@@ -82,4 +88,5 @@ jobs:
             sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
             [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
           done
+          echo Great Success!
         fi
