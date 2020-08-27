@@ -61,7 +61,13 @@ jobs:
           echo '{"auths":{"docker.pkg.github.com":{"auth":"'"$(echo -n "${PACKAGES_READER_GITHUB_USER}:${PACKAGES_READER_GITHUB_TOKEN}" | base64)"'"}}}' \
               | kubectl -- create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin &&\
           helm upgrade --install cwm-worker-ingress ./helm &&\
-          cat tests/k8s-tests.yaml | kubectl apply -f - &&\
+          cat tests/k8s-tests.yaml | kubectl apply -f -
+          [ "$?" != "0" ] && exit 1
+          ELAPSED_SECONDS=0
+          while ! kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli ping; do
+            sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
+            [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
+          done
           kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:available:tests.cwm-worker-ingress.com "" &&\
           kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:ingress:hostname:tests.cwm-worker-ingress.com "tests.default.svc.cluster.local" &&\
           kubectl exec tests -- curl -H 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress | grep 'Thank you for using nginx'
