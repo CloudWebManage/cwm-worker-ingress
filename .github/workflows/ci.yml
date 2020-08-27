@@ -69,6 +69,12 @@ jobs:
             [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
           done
           kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:available:tests.cwm-worker-ingress.com "" &&\
-          kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:ingress:hostname:tests.cwm-worker-ingress.com "tests.default.svc.cluster.local" &&\
+          kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:ingress:hostname:tests.cwm-worker-ingress.com "tests.default.svc.cluster.local"
+          [ "$?" != "0" ] && exit 1
+          ELAPSED_SECONDS=0
+          while ! kubectl exec tests -- true; do
+            sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
+            [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
+          done
           kubectl exec tests -- curl -H 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress | grep 'Thank you for using nginx'
         fi
