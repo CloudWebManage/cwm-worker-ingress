@@ -22,8 +22,9 @@ jobs:
         while ! redis-cli ping; do sleep 1; done
         DEBUG=yes REDIS_HOST=172.17.0.1 venv/bin/cwm_worker_ingress vdns 10053 >log.txt 2>&1 &
         echo 172.17.0.1 cwm-worker-test.com | sudo tee -a /etc/hosts &&\
-        . venv/bin/activate &&\
-        timeout -k 60s 60s ./run_tests.sh
+        . venv/bin/activate
+        [ "$?" != "0" ] && exit 1
+        ( timeout -k 60s 60s ./run_tests.sh )
         TESTS_RES=$?
         echo TESTS_RES=$TESTS_RES
         echo "-- vdns server log --"
