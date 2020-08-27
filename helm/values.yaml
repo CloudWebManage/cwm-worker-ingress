@@ -1,0 +1,39 @@
+debug: false
+replicas: 1
+revisionHistoryLimit: 2
+terminationGracePeriodSeconds: 5
+imagePullSecrets: |
+  - name: github
+
+nginx:
+  image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest
+  resources: |
+    requests:
+      cpu: .1
+      memory: 50Mi
+    limits:
+      memory: 200Mi
+
+vdns:
+  image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest
+  resources: |
+    requests:
+      cpu: .1
+      memory: 100Mi
+    limits:
+      memory: 200Mi
+  env: |
+    - name: "DEBUG"
+      value: "yes"
+
+redis:
+  image: redis@sha256:09c33840ec47815dc0351f1eca3befe741d7105b3e95bc8fdb9a7e4985b9e1e5
+  resources: |
+    requests:
+      cpu: .05
+      memory: 50Mi
+    limits:
+      memory: 200Mi
+
+service:
+  enabled: true

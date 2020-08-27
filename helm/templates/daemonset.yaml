@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: cwm-worker-ingress
+spec:
+  selector:
+    matchLabels:
+      app: cwm-worker-ingress
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        app: cwm-worker-ingress
+    spec:
+      {{ if .Values.nodeSelector }}
+      nodeSelector:
+{{ .Values.nodeSelector | indent 8 }}
+      {{ end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      automountServiceAccountToken: false
+      {{ if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ .Values.imagePullSecrets | indent 6 }}
+      {{ end }}
+      containers:
+      - name: redis
+        image: {{ .Values.redis.image | quote }}
+        resources:
+{{ .Values.redis.resources | indent 10 }}
+      - name: nginx
+        image: {{ .Values.nginx.image | quote }}
+        resources:
+{{ .Values.nginx.resources | indent 10 }}
+      - name: vdns
+        image: {{ .Values.vdns.image | quote }}
+        resources:
+{{ .Values.vdns.resources | indent 10 }}
+        env:
+{{ .Values.vdns.env | indent 8 }}

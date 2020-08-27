@@ -8,6 +8,8 @@ jobs:
     - uses: actions/checkout@v2
     - env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PACKAGES_READER_GITHUB_TOKEN: ${{ secrets.PACKAGES_READER_GITHUB_TOKEN }}
+        PACKAGES_READER_GITHUB_USER: ${{ secrets.PACKAGES_READER_GITHUB_USER }}
       run: |
         sudo apt-get install -y python3-venv redis-tools &&\
         python3 -m venv venv &&\
@@ -41,5 +43,25 @@ jobs:
           docker tag vdns docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
           docker tag nginx docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
           docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
-          docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest
+          docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
+          curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" &&\
+          chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/kubectl &&\
+          kubectl version --client &&\
+          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 &&\
+          chmod +x minikube && sudo mv minikube /usr/local/bin/minikube &&\
+          minikube version &&\
+          curl -Ls https://get.helm.sh/helm-v3.2.4-linux-amd64.tar.gz -ohelm.tar.gz &&\
+          tar -xzvf helm.tar.gz && sudo mv linux-amd64/helm /usr/local/bin/helm &&\
+          sudo chmod +x /usr/local/bin/helm &&\
+          rm -rf linux-amd64 && rm helm.tar.gz &&\
+          helm version &&\
+          minikube start --driver=docker --kubernetes-version=v1.16.14 &&\
+          kubectl get nodes &&\
+          echo '{"auths":{"docker.pkg.github.com":{"auth":"'"$(echo -n "${PACKAGES_READER_GITHUB_USER}:${PACKAGES_READER_GITHUB_TOKEN}" | base64)"'"}}}' \
+              | kubectl -- create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin &&\
+          helm upgrade --install cwm-worker-ingress ./helm &&\
+          cat tests/k8s-tests.yaml | kubectl apply -f - &&\
+          kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:available:tests.cwm-worker-ingress.com "" &&\
+          kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:ingress:hostname:tests.cwm-worker-ingress.com "tests.default.svc.cluster.local" &&\
+          kubectl exec tests -- curl -H 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress | grep 'Thank you for using nginx'
         fi
