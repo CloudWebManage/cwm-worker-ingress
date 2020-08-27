@@ -77,5 +77,9 @@ jobs:
             sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
             [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
           done
-          kubectl exec tests -- curl -H 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress | grep 'Thank you for using nginx'
+          ELAPSED_SECONDS=0
+          while ! kubectl exec tests -- curl -H 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress | grep 'Thank you for using nginx'; do
+            sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
+            [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
+          done
         fi
