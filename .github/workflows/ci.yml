@@ -23,8 +23,9 @@ jobs:
         DEBUG=yes REDIS_HOST=172.17.0.1 venv/bin/cwm_worker_ingress vdns 10053 >log.txt 2>&1 &
         echo 172.17.0.1 cwm-worker-test.com | sudo tee -a /etc/hosts &&\
         . venv/bin/activate &&\
-        ./run_tests.sh
+        timeout -k 60s 60s ./run_tests.sh
         TESTS_RES=$?
+        echo TESTS_RES=$TESTS_RES
         echo "-- vdns server log --"
         cat log.txt
         echo "-- vdns server metrics --"
