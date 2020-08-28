@@ -10,6 +10,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PACKAGES_READER_GITHUB_TOKEN: ${{ secrets.PACKAGES_READER_GITHUB_TOKEN }}
         PACKAGES_READER_GITHUB_USER: ${{ secrets.PACKAGES_READER_GITHUB_USER }}
+        CWM_WORKER_HELM_DEPLOY_KEY: ${{ secrets.CWM_WORKER_HELM_DEPLOY_KEY }}
       run: |
         sudo apt-get install -y python3-venv redis-tools &&\
         python3 -m venv venv &&\
@@ -87,10 +88,12 @@ jobs:
           ELAPSED_SECONDS=0
           while ! kubectl exec tests -- curl -H 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress | grep 'Thank you for using nginx'; do
             sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
-            [ "${ELAPSED_SECONDS}" == "120" ] && STATUS=TIMEOUT && break
+            [ "${ELAPSED_SECONDS}" == "30" ] && STATUS=TIMEOUT && break
           done
           echo STATUS=$STATUS
           POD=$(kubectl get pods | grep cwm-worker-ingress | tee /dev/stderr | cut -d " " -f1)
+          kubectl describe pod tests
+          kubectl describe pod $POD
           echo "-- redis logs --"
           kubectl logs $POD -c redis
           echo "-- nginx logs --"
@@ -98,5 +101,16 @@ jobs:
           echo "-- vdns logs --"
           kubectl logs $POD -c vdns
           [ "${STATUS}" != "OK" ] && exit 1
-          echo Great Success!
+          echo "${CWM_WORKER_HELM_DEPLOY_KEY}" > cwm_worker_helm_deploy_key &&\
+          chmod 400 cwm_worker_helm_deploy_key &&\
+          export GIT_SSH_COMMAND="ssh -i $(pwd)/cwm_worker_helm_deploy_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" &&\
+          git clone git@github.com:CloudWebManage/cwm-worker-helm.git &&\
+          git config --global user.name "cwm-worker-ingress CI" &&\
+          git config --global user.email "cwm-worker-ingress-ci@localhost" &&\
+          helm package ./helm --version "0.0.0-${GITHUB_SHA}" --destination ./cwm-worker-helm/cwm-worker-ingress &&\
+          helm repo index --url "https://raw.githubusercontent.com/CloudWebManage/cwm-worker-helm/master/cwm-worker-ingress/" ./cwm-worker-helm/cwm-worker-ingress &&\
+          cd cwm-worker-helm &&\
+          git add cwm-worker-ingress &&\
+          git commit -m "automatic update of cwm-worker-ingress" &&\
+          git push origin master
         fi
