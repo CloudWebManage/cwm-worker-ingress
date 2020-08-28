@@ -6,7 +6,8 @@ imagePullSecrets: |
   - name: github
 
 nginx:
-  image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest
+  image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx
+  tag: ""
   resources: |
     requests:
       cpu: .1
@@ -15,7 +16,8 @@ nginx:
       memory: 200Mi
 
 vdns:
-  image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest
+  image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns
+  tag: ""
   resources: |
     requests:
       cpu: .1

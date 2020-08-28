@@ -107,7 +107,8 @@ jobs:
           git clone git@github.com:CloudWebManage/cwm-worker-helm.git &&\
           git config --global user.name "cwm-worker-ingress CI" &&\
           git config --global user.email "cwm-worker-ingress-ci@localhost" &&\
-          helm package ./helm --version "0.0.0-${GITHUB_SHA}" --destination ./cwm-worker-helm/cwm-worker-ingress &&\
+          sed -i "s/appVersion: latest/appVersion: ${GITHUB_SHA}/g" helm/Chart.yaml &&\
+          helm package ./helm --version "0.0.0-$(date +%Y%m%dT%H%M%S)" --destination ./cwm-worker-helm/cwm-worker-ingress &&\
           helm repo index --url "https://raw.githubusercontent.com/CloudWebManage/cwm-worker-helm/master/cwm-worker-ingress/" ./cwm-worker-helm/cwm-worker-ingress &&\
           cd cwm-worker-helm &&\
           git add cwm-worker-ingress &&\

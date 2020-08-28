@@ -3,3 +3,4 @@ name: cwm-worker-ingress
 type: application
 version: 0.0.0
 icon: https://go.cloudwm.com/images/logo.png
+appVersion: latest

@@ -28,11 +28,11 @@ spec:
         resources:
 {{ .Values.redis.resources | indent 10 }}
       - name: nginx
-        image: {{ .Values.nginx.image | quote }}
+        image: {{ .Values.nginx.image }}:{{ .Values.nginx.tag | default .Chart.AppVersion }}
         resources:
 {{ .Values.nginx.resources | indent 10 }}
       - name: vdns
-        image: {{ .Values.vdns.image | quote }}
+        image: {{ .Values.vdns.image }}:{{ .Values.vdns.tag | default .Chart.AppVersion }}
         resources:
 {{ .Values.vdns.resources | indent 10 }}
         env:
