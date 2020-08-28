@@ -200,7 +200,7 @@ Create a docker pull secret
 
 ```
 echo '{"auths":{"docker.pkg.github.com":{"auth":"'"$(echo -n "${GITHUB_USER}:${GITHUB_TOKEN}" | base64)"'"}}}' \
-    | kubectl -- create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin
+    | kubectl create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin
 ```
 
 Deploy

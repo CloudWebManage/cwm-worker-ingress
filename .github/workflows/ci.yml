@@ -65,8 +65,8 @@ jobs:
           helm version &&\
           minikube start --driver=docker --kubernetes-version=v1.16.14 &&\
           kubectl get nodes &&\
-          echo '{"auths":{"docker.pkg.github.com":{"auth":"'"$(echo -n "${PACKAGES_READER_GITHUB_USER}:${PACKAGES_READER_GITHUB_TOKEN}" | base64)"'"}}}' \
-              | kubectl -- create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin &&\
+          echo '{"auths":{"docker.pkg.github.com":{"auth":"'"$(echo -n "${PACKAGES_READER_GITHUB_USER}:${PACKAGES_READER_GITHUB_TOKEN}" | base64 -w0)"'"}}}' \
+              | kubectl create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin &&\
           helm upgrade --install cwm-worker-ingress ./helm &&\
           cat tests/k8s-tests.yaml | kubectl apply -f -
           [ "$?" != "0" ] && exit 1
@@ -83,10 +83,20 @@ jobs:
             sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
             [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
           done
+          STATUS=OK
           ELAPSED_SECONDS=0
           while ! kubectl exec tests -- curl -H 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress | grep 'Thank you for using nginx'; do
             sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
-            [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
+            [ "${ELAPSED_SECONDS}" == "120" ] && STATUS=TIMEOUT && break
           done
+          echo STATUS=$STATUS
+          POD=$(kubectl get pods | grep cwm-worker-ingress | tee /dev/stderr | cut -d " " -f1)
+          echo "-- redis logs --"
+          kubectl logs $POD -c redis
+          echo "-- nginx logs --"
+          kubectl logs $POD -c nginx
+          echo "-- vdns logs --"
+          kubectl logs $POD -c vdns
+          [ "${STATUS}" != "OK" ] && exit 1
           echo Great Success!
         fi
