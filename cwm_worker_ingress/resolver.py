@@ -51,29 +51,41 @@ class Resolver:
         reply = request.reply()
         if request.q.qtype == dnslib.QTYPE.A:
             domain = str(request.q.qname)[:-1]
-            if config.DEBUG:
-                print("Resolving: {}".format(domain), flush=True)
-            ipv4 = config.get_domain_ipv4(self.read_redis_pool, domain)
-            if ipv4:
-                reply_success(request, reply, ipv4)
-                self.metrics.send('reply_success')
-            elif config.is_domain_error(self.read_redis_pool, domain):
-                reply_error(request, reply, "worker is in error state (domain={})".format(domain))
-                self.metrics.send('worker is in error state')
-                self.metrics.send('reply_error')
-            else:
-                self.metrics.send('wait for domain availability')
-                ipv4 = wait_for_domain_availability(self.read_redis_pool, self.write_redis_pool, domain)
-                if ipv4:
-                    reply_success(request, reply, ipv4)
-                    self.metrics.send('success after wait')
-                    self.metrics.send('reply_success')
+            if domain and len(domain) > 2:
+                if domain.startswith("__echo__"):
+                    if config.DEBUG:
+                        print("Echo domain: {}".format(domain))
+                    reply_success(request, reply, domain.replace("__echo__", ""))
                 else:
-                    reply_error(request, reply, "failed to get availability (domain={})".format(domain))
-                    self.metrics.send('failed to get availability')
-                    self.metrics.send('reply_error')
-        elif config.DEBUG:
-            print("Unhandled request type: {}".format(request.q.qtype), flush=True)
+                    if config.DEBUG:
+                        print("Resolving: {}".format(domain), flush=True)
+                    ipv4 = config.get_domain_ipv4(self.read_redis_pool, domain)
+                    if ipv4:
+                        reply_success(request, reply, ipv4)
+                        self.metrics.send('reply_success')
+                    elif config.is_domain_error(self.read_redis_pool, domain):
+                        reply_error(request, reply, "worker is in error state (domain={})".format(domain))
+                        self.metrics.send('worker is in error state')
+                        self.metrics.send('reply_error')
+                    else:
+                        self.metrics.send('wait for domain availability')
+                        ipv4 = wait_for_domain_availability(self.read_redis_pool, self.write_redis_pool, domain)
+                        if ipv4:
+                            reply_success(request, reply, ipv4)
+                            self.metrics.send('success after wait')
+                            self.metrics.send('reply_success')
+                        else:
+                            reply_error(request, reply, "failed to get availability (domain={})".format(domain))
+                            self.metrics.send('failed to get availability')
+                            self.metrics.send('reply_error')
+            else:
+                if config.DEBUG:
+                    print("invalid domain (domain={})".format(domain))
+                self.metrics.send('invalid domain')
+                self.metrics.send('reply_none')
+        else:
+            if config.DEBUG:
+                print("Unhandled request type: {}".format(request.q.qtype), flush=True)
             self.metrics.send('unhandled request type')
             self.metrics.send('reply_none')
         return reply
