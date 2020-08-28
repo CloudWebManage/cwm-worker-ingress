@@ -25,6 +25,15 @@ def main(port):
         max_connections=config.REDIS_WRITE_POOL_MAX_CONNECTIONS, timeout=config.REDIS_WRITE_POOL_TIMEOUT,
         host=config.REDIS_WRITE_HOST, port=config.REDIS_WRITE_PORT
     )
+    for pool in (read_redis_pool, write_redis_pool):
+        r = redis.Redis(connection_pool=pool)
+        assert r.ping()
+        r.close()
+    if config.REDIS_REPLICA:
+        r = redis.Redis(connection_pool=read_redis_pool)
+        print("Setting redis to be a replica of {} {}".format(config.REDIS_WRITE_HOST, str(config.REDIS_WRITE_PORT)), flush=True)
+        replicaof_res = r.execute_command('REPLICAOF', config.REDIS_WRITE_HOST, str(config.REDIS_WRITE_PORT))
+        assert replicaof_res == b'OK', "invalid response from REPLICAOF: %s" % replicaof_res
     if config.DEBUG:
         logger = DNSLogger()
     else:

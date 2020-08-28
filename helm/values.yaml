@@ -2,12 +2,17 @@ debug: false
 replicas: 1
 revisionHistoryLimit: 2
 terminationGracePeriodSeconds: 5
+updateStrategy: |
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
 imagePullSecrets: |
   - name: github
 
 nginx:
   image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx
   tag: ""
+  imagePullPolicy: IfNotPresent
   resources: |
     requests:
       cpu: .1
@@ -18,6 +23,7 @@ nginx:
 vdns:
   image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns
   tag: ""
+  imagePullPolicy: IfNotPresent
   resources: |
     requests:
       cpu: .1
@@ -27,9 +33,18 @@ vdns:
   env: |
     - name: "DEBUG"
       value: "yes"
+    - name: "REDIS_HOST"
+      value: "localhost"
+    - name: "REDIS_PORT"
+      value: "6379"
+    - name: "REDIS_WRITE_HOST"
+      value: "redis"
+    - name: "REDIS_WRITE_PORT"
+      value: "6379"
 
 redis:
   image: redis@sha256:09c33840ec47815dc0351f1eca3befe741d7105b3e95bc8fdb9a7e4985b9e1e5
+  imagePullPolicy: IfNotPresent
   resources: |
     requests:
       cpu: .05

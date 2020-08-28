@@ -21,8 +21,13 @@ MAIN_PROCESS_REFRESH_SECONDS = float(os.environ.get("MAIN_PROCESS_REFRESH_SECOND
 DEBUG = os.environ.get("DEBUG") == "yes"
 REDIS_HOST = os.environ.get("REDIS_HOST") or "localhost"
 REDIS_PORT = int(os.environ.get("REDIS_PORT") or "6379")
-REDIS_WRITE_HOST = os.environ.get("REDIS_WRITE_HOST") or REDIS_HOST
-REDIS_WRITE_PORT = int(os.environ.get("REDIS_WRITE_PORT") or REDIS_PORT)
+REDIS_WRITE_HOST = os.environ.get("REDIS_WRITE_HOST")
+REDIS_WRITE_PORT = int(os.environ.get("REDIS_WRITE_PORT") or "6379")
+if REDIS_WRITE_HOST:
+    REDIS_REPLICA = True
+else:
+    REDIS_REPLICA = False
+    REDIS_WRITE_HOST, REDIS_WRITE_PORT = REDIS_HOST, REDIS_PORT
 REDIS_KEY_WORKER_AVAILABLE = "worker:available:{}"
 REDIS_KEY_WORKER_INGRESS_HOSTNAME = "worker:ingress:hostname:{}"
 REDIS_KEY_WORKER_ERROR = "worker:error:{}"

@@ -189,44 +189,40 @@ Verify connection to the cluster
 kubectl get nodes
 ```
 
-Set your GitHub username and token in env vars
-
-```
-GITHUB_USER=
-GITHUB_TOKEN=
-```
-
-Create a docker pull secret
-
-```
-echo '{"auths":{"docker.pkg.github.com":{"auth":"'"$(echo -n "${GITHUB_USER}:${GITHUB_TOKEN}" | base64)"'"}}}' \
-    | kubectl create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin
-```
-
-Deploy
-
-```
-helm upgrade --install cwm-worker-ingress ./helm
-```
-
-### Test
-
-Deploy tests objects
+Deploy main redis server + tests objects
 
 ```
 cat tests/k8s-tests.yaml | kubectl apply -f -
 ```
 
-Set keys in Redis
+Verify main redis is running
 
 ```
-kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:available:tests.cwm-worker-ingress.com "" &&\
-kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:ingress:hostname:tests.cwm-worker-ingress.com "tests.default.svc.cluster.local"
+kubectl exec redis -- redis-cli ping
 ```
 
-Run test
+Deploy using one of the following options:
+
+* Use the published Docker images:
+  * Set your GitHub username and token in env vars:
+    * `GITHUB_USER=`
+    * `GITHUB_TOKEN=`
+  * Create a docker pull secret
+    * `echo '{"auths":{"docker.pkg.github.com":{"auth":"'"$(echo -n "${GITHUB_USER}:${GITHUB_TOKEN}" | base64)"'"}}}' | kubectl create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin`
+  * Deploy
+    * `helm upgrade --install cwm-worker-ingress ./helm`
+
+* Build your own Docker images:
+  * Switch Docker daemon to use the minikube Docker daemon: `eval $(minikube -p minikube docker-env)`
+  * Build and the images: `docker-compose build`
+  * Tag
+    * `docker tag cwm-worker-ingress_nginx:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest`
+    * `docker tag cwm-worker-ingress_vdns:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest`
+  * Deploy
+    * `helm upgrade --install cwm-worker-ingress ./helm`
+
+Run k8s tests
 
 ```
-kubectl exec tests -- curl -H 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress | grep 'Thank you for using nginx'
+tests/k8s_tests.sh
 ```
-

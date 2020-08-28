@@ -71,26 +71,9 @@ jobs:
           helm upgrade --install cwm-worker-ingress ./helm &&\
           cat tests/k8s-tests.yaml | kubectl apply -f -
           [ "$?" != "0" ] && exit 1
-          ELAPSED_SECONDS=0
-          while ! kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli ping; do
-            sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
-            [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
-          done
-          kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:available:tests.cwm-worker-ingress.com "" &&\
-          kubectl exec -c redis "$(kubectl get pods | grep cwm-worker-ingress | cut -d" " -f 1)" -- redis-cli set worker:ingress:hostname:tests.cwm-worker-ingress.com "tests.default.svc.cluster.local"
-          [ "$?" != "0" ] && exit 1
-          ELAPSED_SECONDS=0
-          while ! kubectl exec tests -- true; do
-            sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
-            [ "${ELAPSED_SECONDS}" == "30" ] && exit 1
-          done
-          STATUS=OK
-          ELAPSED_SECONDS=0
-          while ! kubectl exec tests -- curl -H 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress | grep 'Thank you for using nginx'; do
-            sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
-            [ "${ELAPSED_SECONDS}" == "30" ] && STATUS=TIMEOUT && break
-          done
-          echo STATUS=$STATUS
+          tests/k8s_tests.sh
+          K8S_TESTS_RES="$?"
+          echo K8S_TESTS_RES=$K8S_TESTS_RES
           POD=$(kubectl get pods | grep cwm-worker-ingress | tee /dev/stderr | cut -d " " -f1)
           kubectl describe pod tests
           kubectl describe pod $POD
@@ -100,7 +83,7 @@ jobs:
           kubectl logs $POD -c nginx
           echo "-- vdns logs --"
           kubectl logs $POD -c vdns
-          [ "${STATUS}" != "OK" ] && exit 1
+          [ "${K8S_TESTS_RES}" != "0" ] && exit 1
           echo "${CWM_WORKER_HELM_DEPLOY_KEY}" > cwm_worker_helm_deploy_key &&\
           chmod 400 cwm_worker_helm_deploy_key &&\
           export GIT_SSH_COMMAND="ssh -i $(pwd)/cwm_worker_helm_deploy_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" &&\
