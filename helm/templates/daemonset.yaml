@@ -36,6 +36,13 @@ spec:
         imagePullPolicy: {{ .Values.vdns.imagePullPolicy }}
         resources:
 {{ .Values.nginx.resources | indent 10 }}
+        {{ if .Values.nginx.enableHostPorts }}
+        ports:
+        - containerPort: 80
+          hostPort: 80
+        - containerPort: 443
+          hostPort: 443
+        {{ end }}
       - name: vdns
         image: {{ .Values.vdns.image }}:{{ .Values.vdns.tag | default .Chart.AppVersion }}
         imagePullPolicy: {{ .Values.vdns.imagePullPolicy }}
