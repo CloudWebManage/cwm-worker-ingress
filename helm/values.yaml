@@ -30,17 +30,16 @@ vdns:
       memory: 100Mi
     limits:
       memory: 200Mi
-  env: |
-    - name: "DEBUG"
-      value: "yes"
-    - name: "REDIS_HOST"
-      value: "localhost"
-    - name: "REDIS_PORT"
-      value: "6379"
-    - name: "REDIS_WRITE_HOST"
-      value: "redis"
-    - name: "REDIS_WRITE_PORT"
-      value: "6379"
+  redisHost: localhost
+  redisPort: "6379"
+  redisWriteHost: redis
+  redisWritePort: "6379"
+  debugVerbosity: "1"
+  waitForDomainAvailabilityRefreshSeconds: "0.01"
+  waitForDomainAvailabilityMaxWaitSeconds: "5"
+  mainProcessRefreshSeconds: "0.1"
+  prometheusMetricsPort: "8080"
+  prometheusMetricsWithDomainLabel: false
 
 redis:
   image: redis@sha256:09c33840ec47815dc0351f1eca3befe741d7105b3e95bc8fdb9a7e4985b9e1e5

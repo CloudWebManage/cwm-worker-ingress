@@ -19,6 +19,10 @@ REDIS_WRITE_POOL_TIMEOUT = int(os.environ.get("REDIS_WRITE_POOL_TIMEOUT") or "5"
 MAIN_PROCESS_REFRESH_SECONDS = float(os.environ.get("MAIN_PROCESS_REFRESH_SECONDS") or "0.1")
 
 DEBUG = os.environ.get("DEBUG") == "yes"
+
+# higher numbers = more debug logs
+DEBUG_VERBOSITY = int(os.environ.get("DEBUG_VERBOSITY") or "1")
+
 REDIS_HOST = os.environ.get("REDIS_HOST") or "localhost"
 REDIS_PORT = int(os.environ.get("REDIS_PORT") or "6379")
 REDIS_WRITE_HOST = os.environ.get("REDIS_WRITE_HOST")
@@ -33,8 +37,8 @@ REDIS_KEY_WORKER_INGRESS_HOSTNAME = "worker:ingress:hostname:{}"
 REDIS_KEY_WORKER_ERROR = "worker:error:{}"
 REDIS_KEY_WORKER_INITIALIZE = "worker:initialize:{}"
 
-METRICS_SAVE_EVERY_SECONDS = int(os.environ.get("METRICS_SAVE_EVERY_SECONDS") or "5")
-METRICS_SAVE_PATH = os.environ.get("METRICS_SAVE_PATH") or ".metrics"
+PROMETHEUS_METRICS_PORT = int(os.environ.get("PROMETHEUS_METRICS_PORT") or "8080")
+PROMETHEUS_METRICS_WITH_DOMAIN_LABEL = os.environ.get("PROMETHEUS_METRICS_WITH_DOMAIN_LABEL") == "yes"
 
 
 def get_domain_internal_hostname(redis_pool, domain):

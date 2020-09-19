@@ -2,4 +2,3 @@
 .idea
 venv
 *__pycache__*
-.metrics

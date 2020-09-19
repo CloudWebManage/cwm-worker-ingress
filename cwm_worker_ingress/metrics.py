@@ -1,22 +1,42 @@
-from collections import defaultdict
+import datetime
+
+from prometheus_client import Histogram
+
 from cwm_worker_ingress import config
-import json
+
+
+_h_resolver_request_latency = Histogram('resolver_request_latency', 'resolver request latency', ["protocol", "domain", "status"])
 
 
 class Metrics:
 
-    def __init__(self):
-        self.metrics = defaultdict(int)
+    def __init__(self, protocol):
+        self.labels = [protocol]
 
-    def send(self, metric):
-        self.metrics[metric] += 1
+    def resolver_success_cached(self, start_time, domain):
+        if not config.PROMETHEUS_METRICS_WITH_DOMAIN_LABEL:
+            domain = ""
+        _h_resolver_request_latency.labels(*self.labels, domain, "success_cached").observe((datetime.datetime.now() - start_time).total_seconds())
 
+    def resolver_error_cached(self, start_time, domain):
+        if not config.PROMETHEUS_METRICS_WITH_DOMAIN_LABEL:
+            domain = ""
+        _h_resolver_request_latency.labels(*self.labels, domain, "error_cached").observe((datetime.datetime.now() - start_time).total_seconds())
 
-def save(metrics_tcp, metrics_udp, uptime_seconds):
-    with open(config.METRICS_SAVE_PATH, "a") as f:
-        json.dump({
-            "tcp": dict(metrics_tcp.metrics),
-            "udp": dict(metrics_udp.metrics),
-            "uptime": uptime_seconds
-        }, f)
-        f.write("\n")
+    def resolver_success(self, start_time, domain):
+        if not config.PROMETHEUS_METRICS_WITH_DOMAIN_LABEL:
+            domain = ""
+        _h_resolver_request_latency.labels(*self.labels, domain, "success").observe((datetime.datetime.now() - start_time).total_seconds())
+
+    def resolver_error(self, start_time, domain):
+        if not config.PROMETHEUS_METRICS_WITH_DOMAIN_LABEL:
+            domain = ""
+        _h_resolver_request_latency.labels(*self.labels, domain, "error").observe((datetime.datetime.now() - start_time).total_seconds())
+
+    def resolver_unhandled_request_type(self, start_time):
+        domain = ""
+        _h_resolver_request_latency.labels(*self.labels, domain, "unhandled_request_type").observe((datetime.datetime.now() - start_time).total_seconds())
+
+    def resolver_invalid_domain(self, start_time):
+        domain = ""
+        _h_resolver_request_latency.labels(*self.labels, domain, "invalid_domain").observe((datetime.datetime.now() - start_time).total_seconds())

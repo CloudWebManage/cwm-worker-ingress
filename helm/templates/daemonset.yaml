@@ -49,4 +49,29 @@ spec:
         resources:
 {{ .Values.vdns.resources | indent 10 }}
         env:
-{{ .Values.vdns.env | indent 8 }}
+        {{ if $.Values.debug }}
+        - name: "DEBUG"
+          value: "yes"
+        {{ end }}
+        - name: "REDIS_HOST"
+          value: {{ $.Values.vdns.redisHost | quote }}
+        - name: "REDIS_PORT"
+          value: {{ $.Values.vdns.redisPort | quote }}
+        - name: "REDIS_WRITE_HOST"
+          value: {{ $.Values.vdns.redisWriteHost | quote }}
+        - name: "REDIS_WRITE_PORT"
+          value: {{ $.Values.vdns.redisWritePort | quote }}
+        - name: "DEBUG_VERBOSITY"
+          value: {{ $.Values.vdns.debugVerbosity | quote }}
+        - name: "WAIT_FOR_DOMAIN_AVAILABILITY_REFRESH_SECONDS"
+          value: {{ $.Values.vdns.waitForDomainAvailabilityRefreshSeconds | quote }}
+        - name: "WAIT_FOR_DOMAIN_AVAILABILITY_MAX_WAIT_SECONDS"
+          value: {{ $.Values.vdns.waitForDomainAvailabilityMaxWaitSeconds | quote }}
+        - name: "MAIN_PROCESS_REFRESH_SECONDS"
+          value: {{ $.Values.vdns.mainProcessRefreshSeconds | quote }}
+        - name: "PROMETHEUS_METRICS_PORT"
+          value: {{ $.Values.vdns.prometheusMetricsPort | quote }}
+        {{ if $.Values.vdns.prometheusMetricsWithDomainLabel }}
+        - name: "PROMETHEUS_METRICS_WITH_DOMAIN_LABEL"
+          value: "yes"
+        {{ end }}

@@ -37,8 +37,6 @@ jobs:
         echo "status.txt=$(cat status.txt)"
         echo "-- vdns server log --"
         cat log.txt
-        echo "-- vdns server metrics --"
-        cat .metrics
         [ "$(cat status.txt)" != "OK" ] && echo tests failed && exit 1
         echo "${GITHUB_TOKEN}" | docker login https://docker.pkg.github.com -u cloudwebmanage --password-stdin &&\
         docker pull docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\

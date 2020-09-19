@@ -4,19 +4,16 @@ import datetime
 import dnslib.server
 from dnslib.server import DNSLogger
 import redis
+import prometheus_client
 
 from cwm_worker_ingress import resolver
 from cwm_worker_ingress import config
 from cwm_worker_ingress import metrics
+from cwm_worker_ingress import logs
 
 
 def main(port):
-    start_time = datetime.datetime.now()
-    if config.DEBUG:
-        print("{} starting server in debug mode on port {}".format(start_time, port), flush=True)
-    else:
-        print("{} starting server on port {}".format(start_time, port), flush=True)
-    print("REDIS_HOST={} REDIS_PORT={}".format(config.REDIS_HOST, config.REDIS_PORT), flush=True)
+    main_logs = logs.MainLogs(port)
     read_redis_pool = redis.BlockingConnectionPool(
         max_connections=config.REDIS_READ_POOL_MAX_CONNECTIONS, timeout=config.REDIS_READ_POOL_TIMEOUT,
         host=config.REDIS_HOST, port=config.REDIS_PORT
@@ -31,36 +28,28 @@ def main(port):
         r.close()
     if config.REDIS_REPLICA:
         r = redis.Redis(connection_pool=read_redis_pool)
-        print("Setting redis to be a replica of {} {}".format(config.REDIS_WRITE_HOST, str(config.REDIS_WRITE_PORT)), flush=True)
+        main_logs.info("Setting redis to be a replica of {} {}".format(config.REDIS_WRITE_HOST, str(config.REDIS_WRITE_PORT)))
         replicaof_res = r.execute_command('REPLICAOF', config.REDIS_WRITE_HOST, str(config.REDIS_WRITE_PORT))
         assert replicaof_res == b'OK', "invalid response from REPLICAOF: %s" % replicaof_res
-    if config.DEBUG:
-        logger = DNSLogger()
-    else:
-        logger = DNSLogger("-recv,-send,-request,-reply,-truncated,-error,-data")
-    metrics_tcp = metrics.Metrics()
-    metrics_udp = metrics.Metrics()
+    main_logs.info("Starting prometheus http server on port {}".format(config.PROMETHEUS_METRICS_PORT))
+    prometheus_client.start_http_server(config.PROMETHEUS_METRICS_PORT)
     servers = [
         dnslib.server.DNSServer(
-            resolver.Resolver(read_redis_pool, write_redis_pool, metrics_tcp),
-            port=int(port), address='localhost', tcp=True, logger=logger
+            resolver.Resolver(read_redis_pool, write_redis_pool, metrics.Metrics("tcp"), main_logs.get_resolver_logs("tcp")),
+            port=int(port), address='localhost', tcp=True, logger=main_logs.get_dns_logger("tcp")
         ),
         dnslib.server.DNSServer(
-            resolver.Resolver(read_redis_pool, write_redis_pool, metrics_udp),
-            port=int(port), address='localhost', tcp=False, logger=logger
+            resolver.Resolver(read_redis_pool, write_redis_pool, metrics.Metrics("udp"), main_logs.get_resolver_logs("udp")),
+            port=int(port), address='localhost', tcp=False, logger=main_logs.get_dns_logger("udp")
         ),
     ]
     for i, s in enumerate(servers):
-        print("starting thread {}".format(i), flush=True)
+        main_logs.info("starting thread {}".format(i))
         s.start_thread()
 
-    last_metrics_time = datetime.datetime.now()
     try:
         while True:
             time.sleep(config.MAIN_PROCESS_REFRESH_SECONDS)
-            if (datetime.datetime.now() - last_metrics_time).total_seconds() >= config.METRICS_SAVE_EVERY_SECONDS:
-                metrics.save(metrics_tcp, metrics_udp, (datetime.datetime.now() - start_time).total_seconds())
-                last_metrics_time = datetime.datetime.now()
     except KeyboardInterrupt:
         pass
     finally:
