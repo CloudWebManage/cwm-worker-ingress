@@ -20,8 +20,7 @@ services:
     build: nginx
     network_mode: host
 
-#  test:
-#    image: nginx
-#    ports:
-#      - "8080:80"
-#
+  test:
+    image: nginx:alpine
+    ports:
+      - "8080:80"

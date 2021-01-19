@@ -40,7 +40,7 @@ vdns:
   waitForDomainAvailabilityRefreshSeconds: "0.01"
   waitForDomainAvailabilityMaxWaitSeconds: "5"
   mainProcessRefreshSeconds: "0.1"
-  prometheusMetricsPort: "8080"
+  prometheusMetricsPort: "8088"
   prometheusMetricsWithDomainLabel: false
 
 redis:
