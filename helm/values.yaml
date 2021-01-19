@@ -14,18 +14,19 @@ nginx:
   image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx
   tag: ""
   imagePullPolicy: IfNotPresent
-  resources: |
+  resources:
     requests:
       cpu: .1
       memory: 50Mi
     limits:
       memory: 200Mi
+  metricsWithHost: false
 
 vdns:
   image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns
   tag: ""
   imagePullPolicy: IfNotPresent
-  resources: |
+  resources:
     requests:
       cpu: .1
       memory: 100Mi
@@ -45,7 +46,7 @@ vdns:
 redis:
   image: redis@sha256:09c33840ec47815dc0351f1eca3befe741d7105b3e95bc8fdb9a7e4985b9e1e5
   imagePullPolicy: IfNotPresent
-  resources: |
+  resources:
     requests:
       cpu: .05
       memory: 50Mi

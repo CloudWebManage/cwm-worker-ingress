@@ -34,12 +34,15 @@ spec:
         image: {{ .Values.redis.image | quote }}
         imagePullPolicy: {{ .Values.vdns.imagePullPolicy }}
         resources:
-{{ .Values.redis.resources | indent 10 }}
+{{ toYaml .Values.redis.resources | indent 10 }}
       - name: nginx
         image: {{ .Values.nginx.image }}:{{ .Values.nginx.tag | default .Chart.AppVersion }}
         imagePullPolicy: {{ .Values.vdns.imagePullPolicy }}
+        env:
+          - name: "METRIC_LUA_WITH_HOST"
+            value: "{{ if .Values.nginx.metricsWithHost }}yes{{ else }}no{{ end }}"
         resources:
-{{ .Values.nginx.resources | indent 10 }}
+{{ toYaml .Values.nginx.resources | indent 10 }}
         {{ if .Values.nginx.enableHostPorts }}
         ports:
         - containerPort: 80
@@ -51,7 +54,7 @@ spec:
         image: {{ .Values.vdns.image }}:{{ .Values.vdns.tag | default .Chart.AppVersion }}
         imagePullPolicy: {{ .Values.vdns.imagePullPolicy }}
         resources:
-{{ .Values.vdns.resources | indent 10 }}
+{{ toYaml .Values.vdns.resources | indent 10 }}
         env:
         {{ if $.Values.debug }}
         - name: "DEBUG"
