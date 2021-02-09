@@ -23,7 +23,8 @@ jobs:
         while ! redis-cli ping; do sleep 1; done
         DEBUG=yes REDIS_HOST=172.17.0.1 venv/bin/cwm_worker_ingress vdns 10053 >log.txt 2>&1 &
         sleep 2 &&\
-        echo 172.17.0.1 cwm-worker-test.com | sudo tee -a /etc/hosts &&\
+        echo 172.17.0.1 cwm-worker-test-http.com | sudo tee -a /etc/hosts &&\
+        echo 172.17.0.2 cwm-worker-test-https.com | sudo tee -a /etc/hosts &&\
         . venv/bin/activate
         [ "$?" != "0" ] && exit 1
         echo ERROR > status.txt
@@ -74,7 +75,7 @@ jobs:
           tests/k8s_tests.sh
           K8S_TESTS_RES="$?"
           echo K8S_TESTS_RES=$K8S_TESTS_RES
-          POD=$(kubectl get pods | grep cwm-worker-ingress | tee /dev/stderr | cut -d " " -f1)
+          POD=$(kubectl get pods | grep cwm-worker-ingress-http- | tee /dev/stderr | cut -d " " -f1)
           kubectl describe pod tests
           kubectl describe pod $POD
           echo "-- redis logs --"

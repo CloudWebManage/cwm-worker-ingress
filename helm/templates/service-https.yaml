@@ -1,0 +1,12 @@
+{{ if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: cwm-worker-ingress-https
+spec:
+  ports:
+  - name: "443"
+    port: 443
+  selector:
+    app: cwm-worker-ingress-https
+{{ end }}

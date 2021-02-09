@@ -62,10 +62,10 @@ Set domain available
 redis-cli set "worker:available:${DOMAIN}" ""
 ```
 
-Set domain internal host name to cwm-worker-test.com (You should also set an internal IP for it in /etc/hosts)
+Set domain internal host name to cwm-worker-test.com (You should also set an internal IP different then 127.0.0.1 for these domains in /etc/hosts)
 
 ```
-redis-cli set "worker:ingress:hostname:${DOMAIN}" "cwm-worker-test.com"
+redis-cli set "worker:ingress:hostname:${DOMAIN}" '{"http":"cwm-worker-test-http.com","https":"cwm-worker-test-https.com"}'
 ```
 
 Set domain error
@@ -78,10 +78,11 @@ redis-cli set "worker:error:${DOMAIN}" ""
 
 Start the local development server as specified for local development
 
-Set test domain in /etc/hosts:
+Set test domains in /etc/hosts:
 
 ```
-172.17.0.1 cwm-worker-test.com
+172.17.0.1 cwm-worker-test-http.com
+172.17.0.2 cwm-worker-test-https.com
 ```
 
 Make sure to start a clean Redis
@@ -115,7 +116,7 @@ Set `localhost` domain to be available
 
 ```
 redis-cli set "worker:available:localhost" ""
-redis-cli set "worker:ingress:hostname:localhost" "localhost"
+redis-cli set "worker:ingress:hostname:localhost" '{"http":"localhost"}'
 ```
 
 Access it - should respond very quickly

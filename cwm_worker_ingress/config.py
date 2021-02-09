@@ -1,7 +1,10 @@
 import os
-import socket
+import json
 import redis
+import socket
 
+# the workloads protocol this vdns is serving
+VDNS_PROTOCOL = os.environ.get("VDNS_PROTOCOL") or 'http'
 
 # how long to wait between checks for domain availability
 WAIT_FOR_DOMAIN_AVAILABILITY_REFRESH_SECONDS = float(os.environ.get("WAIT_FOR_DOMAIN_AVAILABILITY_REFRESH_SECONDS") or "0.01")
@@ -47,7 +50,11 @@ def get_domain_internal_hostname(redis_pool, domain):
     if r.exists(REDIS_KEY_WORKER_AVAILABLE.format(domain)):
         hostname = r.get(REDIS_KEY_WORKER_INGRESS_HOSTNAME.format(domain))
         r.close()
-        return hostname.decode() if hostname else None
+        if hostname:
+            try:
+                return json.loads(hostname.decode())[VDNS_PROTOCOL]
+            except:
+                return None
     else:
         r.close()
         return None

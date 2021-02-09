@@ -2,13 +2,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: cwm-worker-ingress
+  name: cwm-worker-ingress-http
 spec:
   ports:
   - name: "80"
     port: 80
-  - name: "443"
-    port: 443
   selector:
-    app: cwm-worker-ingress
+    app: cwm-worker-ingress-http
 {{ end }}

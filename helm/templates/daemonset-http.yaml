@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: cwm-worker-ingress-http
+spec:
+  minReadySeconds: 5
+  updateStrategy:
+{{ .Values.updateStrategy | indent 4 }}
+  selector:
+    matchLabels:
+      app: cwm-worker-ingress-http
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        app: cwm-worker-ingress-http
+    spec:
+      {{ if .Values.nodeSelector }}
+      nodeSelector:
+{{ .Values.nodeSelector | indent 8 }}
+      {{ end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if $.Values.tolerations }}
+      tolerations:
+{{ toYaml $.Values.tolerations | indent 6 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      {{ if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ .Values.imagePullSecrets | indent 6 }}
+      {{ end }}
+      containers:
+      - name: redis
+        image: {{ .Values.redis.image | quote }}
+        imagePullPolicy: {{ .Values.vdns.imagePullPolicy }}
+        resources:
+{{ toYaml .Values.redis.resources | indent 10 }}
+      - name: nginx
+        image: {{ .Values.nginx.image }}:{{ .Values.nginx.tag | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.vdns.imagePullPolicy }}
+        env:
+          - name: "METRIC_LUA_WITH_HOST"
+            value: "{{ if .Values.nginx.metricsWithHost }}yes{{ else }}no{{ end }}"
+        resources:
+{{ toYaml .Values.nginx.resources | indent 10 }}
+        {{ if .Values.nginx.enableHostPorts }}
+        ports:
+        - containerPort: 80
+          hostPort: 80
+        {{ end }}
+      - name: vdns
+        image: {{ .Values.vdns.image }}:{{ .Values.vdns.tag | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.vdns.imagePullPolicy }}
+        resources:
+{{ toYaml .Values.vdns.resources | indent 10 }}
+        env:
+        - name: "VDNS_PROTOCOL"
+          value: "http"
+        {{ if $.Values.debug }}
+        - name: "DEBUG"
+          value: "yes"
+        {{ end }}
+        - name: "REDIS_HOST"
+          value: {{ $.Values.vdns.redisHost | quote }}
+        - name: "REDIS_PORT"
+          value: {{ $.Values.vdns.redisPort | quote }}
+        - name: "REDIS_WRITE_HOST"
+          value: {{ $.Values.vdns.redisWriteHost | quote }}
+        - name: "REDIS_WRITE_PORT"
+          value: {{ $.Values.vdns.redisWritePort | quote }}
+        - name: "DEBUG_VERBOSITY"
+          value: {{ $.Values.vdns.debugVerbosity | quote }}
+        - name: "WAIT_FOR_DOMAIN_AVAILABILITY_REFRESH_SECONDS"
+          value: {{ $.Values.vdns.waitForDomainAvailabilityRefreshSeconds | quote }}
+        - name: "WAIT_FOR_DOMAIN_AVAILABILITY_MAX_WAIT_SECONDS"
+          value: {{ $.Values.vdns.waitForDomainAvailabilityMaxWaitSeconds | quote }}
+        - name: "MAIN_PROCESS_REFRESH_SECONDS"
+          value: {{ $.Values.vdns.mainProcessRefreshSeconds | quote }}
+        - name: "PROMETHEUS_METRICS_PORT"
+          value: {{ $.Values.vdns.prometheusMetricsPort | quote }}
+        {{ if $.Values.vdns.prometheusMetricsWithDomainLabel }}
+        - name: "PROMETHEUS_METRICS_WITH_DOMAIN_LABEL"
+          value: "yes"
+        {{ end }}
