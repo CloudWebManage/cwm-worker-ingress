@@ -19,6 +19,8 @@ services:
       - vdns
     build: nginx
     network_mode: host
+    environment:
+      METRIC_LUA_WITH_HOST: "yes"
 
   test:
     image: nginx:alpine

@@ -41,6 +41,8 @@ spec:
         env:
           - name: "METRIC_LUA_WITH_HOST"
             value: "{{ if .Values.nginx.metricsWithHost }}yes{{ else }}no{{ end }}"
+          - name: "CWM_NGINX_PROTOCOL"
+            value: "http"
         resources:
 {{ toYaml .Values.nginx.resources | indent 10 }}
         {{ if .Values.nginx.enableHostPorts }}

@@ -106,7 +106,7 @@ Run all tests:
 
 ## Local docker-compose production environment
 
-Start the environment (it uses network mode = host, so all ports should be free on the host)
+Start the environment for serving http protocol (it uses network mode = host, so all ports should be free on the host)
 
 ```
 docker-compose up --build -d
@@ -123,6 +123,12 @@ Access it - should respond very quickly
 
 ```
 time curl localhost
+```
+
+Run the stack for serving https:
+
+```
+docker-compose -f docker-compose.yaml -f docker-compose-https.yaml up --build -d
 ```
 
 ## Publishing Docker Images

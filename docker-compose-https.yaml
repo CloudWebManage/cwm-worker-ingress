@@ -1,0 +1,11 @@
+version: '3.5'
+
+services:
+
+  vdns:
+    environment:
+      VDNS_PROTOCOL: "https"
+
+  nginx:
+    environment:
+      CWM_NGINX_PROTOCOL: "https"

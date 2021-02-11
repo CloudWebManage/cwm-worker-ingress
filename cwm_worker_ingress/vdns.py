@@ -14,6 +14,7 @@ from cwm_worker_ingress import logs
 
 def main(port):
     main_logs = logs.MainLogs(port)
+    main_logs.info("VDNS_PROTOCOL={}".format(config.VDNS_PROTOCOL))
     read_redis_pool = redis.BlockingConnectionPool(
         max_connections=config.REDIS_READ_POOL_MAX_CONNECTIONS, timeout=config.REDIS_READ_POOL_TIMEOUT,
         host=config.REDIS_HOST, port=config.REDIS_PORT
