@@ -1,12 +1,26 @@
 #!/usr/bin/env sh
 
-# metrics with host is not supported for SSL
-#if [ "${METRIC_LUA_WITH_HOST}" == "yes" ]; then
-#  echo metrics with host
-#  echo "include metric_lua_with_host.conf;" > /usr/local/openresty/nginx/conf/metric_lua.conf
-#else
-echo metrics without host
-#fi
+if [ "${METRIC_LUA_DISABLE}" == "yes" ]; then
+  echo metrics disabled
+  echo "" > /usr/local/openresty/nginx/conf/metric_lua.conf
+  echo "" > /usr/local/openresty/nginx/conf/metric_lua_http.conf
+  echo "" > /usr/local/openresty/nginx/conf/metric_lua_https.conf
+else
+  # metrics with host is not supported for SSL
+  #if [ "${METRIC_LUA_WITH_HOST}" == "yes" ]; then
+  #  echo metrics with host
+  #  echo "include metric_lua_with_host.conf;" > /usr/local/openresty/nginx/conf/metric_lua.conf
+  #else
+    echo metrics without host
+  #fi
+fi
+
+if [ "${ENABLE_ACCESS_LOG}" == "yes" ]; then
+  echo access log enabled
+else
+  echo access log disabled
+  echo "" > /usr/local/openresty/nginx/conf/access_log.conf
+fi
 
 if [ "${CWM_NGINX_PROTOCOL}" == "https" ]; then
   echo serving cwm https

@@ -6,4 +6,5 @@ COPY nginx_http.conf nginx_https.conf resolver.conf http_listen.conf https_liste
      metric_lua.conf metric_lua_with_host.conf metric_lua_without_host.conf \
      entrypoint.sh \
          /usr/local/openresty/nginx/conf/
+ENV METRIC_LUA_DISABLE "yes"
 ENTRYPOINT ["/usr/local/openresty/nginx/conf/entrypoint.sh"]

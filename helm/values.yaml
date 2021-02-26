@@ -20,7 +20,8 @@ nginx:
       memory: 50Mi
     limits:
       memory: 200Mi
-  metricsWithHost: false
+  enableLuaMetrics: false
+  enableAccessLog: false
 
 vdns:
   image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns

@@ -39,10 +39,17 @@ spec:
         image: {{ .Values.nginx.image }}:{{ .Values.nginx.tag | default .Chart.AppVersion }}
         imagePullPolicy: {{ .Values.vdns.imagePullPolicy }}
         env:
-          - name: "METRIC_LUA_WITH_HOST"
-            value: "{{ if .Values.nginx.metricsWithHost }}yes{{ else }}no{{ end }}"
+          # this is not supported in current configuration
+          # - name: "METRIC_LUA_WITH_HOST"
+          #   value: "{{ if .Values.nginx.metricsWithHost }}yes{{ else }}no{{ end }}"
           - name: "CWM_NGINX_PROTOCOL"
             value: "http"
+          - name: "METRIC_LUA_DISABLE"
+            value: {{ if .Values.nginx.enableLuaMetrics }}"no"{{ else }}"yes"{{ end }}
+          {{ if .Values.nginx.enableAccessLog }}
+          - name: "ENABLE_ACCESS_LOG"
+            value: "yes"
+          {{ end }}
         resources:
 {{ toYaml .Values.nginx.resources | indent 10 }}
         {{ if .Values.nginx.enableHostPorts }}
