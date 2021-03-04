@@ -50,6 +50,10 @@ spec:
           - name: "ENABLE_ACCESS_LOG"
             value: "yes"
           {{ end }}
+          - name: WORKER_PROCESSES
+            value: {{ .Values.nginx.httpsWorkerProcesses | quote }}
+          - name: WORKER_CONNECTIONS
+            value: {{ .Values.nginx.httpsWorkerConnections | quote }}
         resources:
 {{ toYaml .Values.nginx.resources | indent 10 }}
         {{ if .Values.nginx.enableHostPorts }}

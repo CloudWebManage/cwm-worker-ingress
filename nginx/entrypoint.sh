@@ -30,4 +30,12 @@ else
   cat /usr/local/openresty/nginx/conf/nginx_http.conf > /usr/local/openresty/nginx/conf/nginx.conf
 fi
 
+if [ "${WORKER_PROCESSES}" != "" ]; then
+  sed -i "s/worker_processes 1;/worker_processes ${WORKER_PROCESSES};/g" /usr/local/openresty/nginx/conf/nginx.conf
+fi
+
+if [ "${WORKER_CONNECTIONS}" != "" ]; then
+  sed -i "s/worker_connections 2048;/worker_connections ${WORKER_CONNECTIONS};/g" /usr/local/openresty/nginx/conf/nginx.conf
+fi
+
 exec /usr/local/openresty/bin/openresty -g "daemon off;"

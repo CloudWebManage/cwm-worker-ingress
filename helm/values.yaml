@@ -22,6 +22,10 @@ nginx:
       memory: 200Mi
   enableLuaMetrics: false
   enableAccessLog: false
+  httpWorkerProcesses: "1"
+  httpWorkerConnections: "2048"
+  httpsWorkerProcesses: "1"
+  httpsWorkerConnections: "2048"
 
 vdns:
   image: docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns
