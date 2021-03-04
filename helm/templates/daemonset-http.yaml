@@ -55,7 +55,7 @@ spec:
           - name: WORKER_CONNECTIONS
             value: {{ .Values.nginx.httpWorkerConnections | quote }}
         resources:
-{{ toYaml .Values.nginx.resources | indent 10 }}
+{{ toYaml .Values.nginx.httpResources | indent 10 }}
         {{ if .Values.nginx.enableHostPorts }}
         ports:
         - containerPort: 80
