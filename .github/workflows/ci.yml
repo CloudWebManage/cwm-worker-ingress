@@ -68,7 +68,7 @@ jobs:
           kubectl get nodes &&\
           echo '{"auths":{"docker.pkg.github.com":{"auth":"'"$(echo -n "${PACKAGES_READER_GITHUB_USER}:${PACKAGES_READER_GITHUB_TOKEN}" | base64 -w0)"'"}}}' \
               | kubectl create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin &&\
-          helm upgrade --install cwm-worker-ingress ./helm &&\
+          helm upgrade --install --wait cwm-worker-ingress ./helm &&\
           cat tests/k8s-tests.yaml | kubectl apply -f -
           [ "$?" != "0" ] && exit 1
           sleep 5

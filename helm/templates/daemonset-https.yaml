@@ -54,6 +54,8 @@ spec:
             value: {{ .Values.nginx.httpsWorkerProcesses | quote }}
           - name: WORKER_CONNECTIONS
             value: {{ .Values.nginx.httpsWorkerConnections | quote }}
+          - name: RESOLVER_TIMEOUT_SECONDS
+            value: {{ .Values.nginx.resolverTimeoutSeconds | quote }}
         resources:
 {{ toYaml .Values.nginx.httpsResources | indent 10 }}
         {{ if .Values.nginx.enableHostPorts }}

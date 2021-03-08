@@ -38,4 +38,8 @@ if [ "${WORKER_CONNECTIONS}" != "" ]; then
   sed -i "s/worker_connections 2048;/worker_connections ${WORKER_CONNECTIONS};/g" /usr/local/openresty/nginx/conf/nginx.conf
 fi
 
+if [ "${RESOLVER_TIMEOUT_SECONDS}" != "" ]; then
+  sed -i "s/resolver_timeout 30s;/resolver_timeout ${RESOLVER_TIMEOUT_SECONDS}s;/g" /usr/local/openresty/nginx/conf/resolver.conf
+fi
+
 exec /usr/local/openresty/bin/openresty -g "daemon off;"
