@@ -221,12 +221,12 @@ Deploy using one of the following options:
 
 * Build your own Docker images:
   * Switch Docker daemon to use the minikube Docker daemon: `eval $(minikube -p minikube docker-env)`
-  * Build and the images: `docker-compose build`
-  * Tag
-    * `docker tag cwm-worker-ingress_nginx:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest`
-    * `docker tag cwm-worker-ingress_vdns:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest`
-  * Deploy
-    * `helm upgrade --install cwm-worker-ingress ./helm`
+```
+docker-compose build &&\
+docker tag cwm-worker-ingress_nginx:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
+docker tag cwm-worker-ingress_vdns:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
+helm upgrade --install --wait --set "vdns.debugVerbosity=8,debug=true" cwm-worker-ingress ./helm
+```
 
 Run k8s tests
 

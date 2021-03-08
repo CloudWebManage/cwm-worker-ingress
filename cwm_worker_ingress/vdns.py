@@ -31,21 +31,21 @@ def main(port):
         r = redis.Redis(connection_pool=read_redis_pool)
         main_logs.info("Setting redis to be a replica of {} {}".format(config.REDIS_WRITE_HOST, str(config.REDIS_WRITE_PORT)))
         replicaof_res = r.execute_command('REPLICAOF', config.REDIS_WRITE_HOST, str(config.REDIS_WRITE_PORT))
-        assert replicaof_res == b'OK', "invalid response from REPLICAOF: %s" % replicaof_res
+        assert replicaof_res.startswith(b'OK'), "invalid response from REPLICAOF: %s" % replicaof_res
     main_logs.info("Starting prometheus http server on port {}".format(config.PROMETHEUS_METRICS_PORT))
     prometheus_client.start_http_server(config.PROMETHEUS_METRICS_PORT)
     servers = [
-        dnslib.server.DNSServer(
+        *[dnslib.server.DNSServer(
             resolver.Resolver(read_redis_pool, write_redis_pool, metrics.Metrics("tcp"), main_logs.get_resolver_logs("tcp")),
             port=int(port), address='localhost', tcp=True, logger=main_logs.get_dns_logger("tcp")
-        ),
-        dnslib.server.DNSServer(
+        ) for _ in range(config.TCP_THREADS)],
+        *[dnslib.server.DNSServer(
             resolver.Resolver(read_redis_pool, write_redis_pool, metrics.Metrics("udp"), main_logs.get_resolver_logs("udp")),
             port=int(port), address='localhost', tcp=False, logger=main_logs.get_dns_logger("udp")
-        ),
+        ) for _ in range(config.UDP_THREADS)],
     ]
     for i, s in enumerate(servers):
-        main_logs.info("starting thread {}".format(i))
+        main_logs.info("starting thread {} ({})".format(i+1, s.server))
         s.start_thread()
 
     try:

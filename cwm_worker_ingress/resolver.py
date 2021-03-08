@@ -72,9 +72,9 @@ class Resolver:
                             self._reply_error(request, reply, "failed to get availability (domain={})".format(domain))
                             self.metrics.resolver_error(start_time, domain)
             else:
-                self.logs.debug("invalid domain (domain={})".format(domain), 1, start_time=start_time)
+                self.logs.debug("invalid domain (domain={})".format(domain), 8, start_time=start_time)
                 self.metrics.resolver_invalid_domain(start_time)
         else:
-            self.logs.debug("Unhandled request type: {}".format(request.q.qtype), 1, start_time=start_time)
+            self.logs.debug("Unhandled request type: {}".format(request.q.qtype), 9, start_time=start_time)
             self.metrics.resolver_unhandled_request_type(start_time)
         return reply

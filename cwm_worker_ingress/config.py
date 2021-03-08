@@ -43,6 +43,8 @@ REDIS_KEY_WORKER_INITIALIZE = "worker:initialize:{}"
 PROMETHEUS_METRICS_PORT = int(os.environ.get("PROMETHEUS_METRICS_PORT") or "8088")
 PROMETHEUS_METRICS_WITH_DOMAIN_LABEL = os.environ.get("PROMETHEUS_METRICS_WITH_DOMAIN_LABEL") == "yes"
 
+TCP_THREADS = int(os.environ.get("TCP_THREADS", 0))
+UDP_THREADS = int(os.environ.get("UDP_THREADS", 5))
 
 def get_domain_internal_hostname(redis_pool, domain):
     """returns the domain's internal_hostname if domain is available for receiving connections else returns None"""
