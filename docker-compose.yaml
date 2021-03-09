@@ -21,6 +21,7 @@ services:
     network_mode: host
     environment:
       METRIC_LUA_WITH_HOST: "yes"
+      # ENABLE_ACCESS_LOG: "yes"
 
   test:
     image: nginx:alpine

@@ -15,11 +15,11 @@ else
   #fi
 fi
 
-if [ "${ENABLE_ACCESS_LOG}" == "yes" ]; then
+if [ "${ENABLE_ACCESS_LOG}" == "yes" ] && [ "${CWM_NGINX_PROTOCOL}" != "https" ]; then
   echo access log enabled
+  echo "access_log logs/access.log combined;" > /usr/local/openresty/nginx/conf/access_log.conf
 else
   echo access log disabled
-  echo "" > /usr/local/openresty/nginx/conf/access_log.conf
 fi
 
 if [ "${CWM_NGINX_PROTOCOL}" == "https" ]; then
