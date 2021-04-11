@@ -74,6 +74,22 @@ Set domain error
 redis-cli set "worker:error:${DOMAIN}" ""
 ```
 
+Set node healthy
+
+```
+redis-cli set "node:healthy:testnode0" ""
+```
+
+Check node healthy filename exists: `.node_healthy`
+
+Delete node healthy
+
+```
+redis-cli del "node:healthy:testnode0"
+```
+
+Check node healthy filename deleted: `.node_healthy`
+
 ## Python module automated tests
 
 Start the local development server as specified for local development
@@ -124,6 +140,22 @@ Access it - should respond very quickly
 ```
 time curl localhost
 ```
+
+Set node healthy
+
+```
+redis-cli set "node:healthy:testnode0" ""
+```
+
+Get nginx healthz: `curl localhost/healthz` (should be OK)
+
+Delete node healthy
+
+```
+redis-cli del "node:healthy:testnode0"
+```
+
+Get nginx healthz: `curl localhost/healthz` (should be error 404)
 
 Run the stack for serving https:
 

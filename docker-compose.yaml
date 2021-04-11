@@ -12,7 +12,10 @@ services:
     build: .
     environment:
       DEBUG: "yes"
+      NODE_HEALTHY_FILENAME: /opt/healthz/node
     network_mode: host
+    volumes:
+      - healthz:/opt/healthz
 
   nginx:
     depends_on:
@@ -22,8 +25,13 @@ services:
     environment:
       METRIC_LUA_WITH_HOST: "yes"
       # ENABLE_ACCESS_LOG: "yes"
+    volumes:
+      - healthz:/opt/healthz
 
   test:
     image: nginx:alpine
     ports:
       - "8080:80"
+
+volumes:
+  healthz:

@@ -51,5 +51,18 @@ if [ "$(expr "${OUTPUT} > 1")" == "1" ]; then
   exit 1
 fi
 
+kubectl exec redis -- redis-cli del node:healthy:minikube
+sleep 1
+if ! kubectl exec tests -- curl -s http://cwm-worker-ingress-http/healthz | grep "404 Not Found"; then
+  echo after delete of node healthy redis key healthz response was not 404
+  exit 1
+fi
+kubectl exec redis -- redis-cli set node:healthy:minikube ""
+sleep 1
+if ! kubectl exec tests -- curl -s http://cwm-worker-ingress-http/healthz | grep "OK"; then
+  echo after set of node healthy redis key healthz response was not OK
+  exit 1
+fi
+
 echo OK
 exit 0

@@ -1,7 +1,10 @@
 import os
 import json
-import redis
 import socket
+from contextlib import contextmanager
+
+import redis
+
 
 # the workloads protocol this vdns is serving
 VDNS_PROTOCOL = os.environ.get("VDNS_PROTOCOL") or 'http'
@@ -46,19 +49,32 @@ PROMETHEUS_METRICS_WITH_DOMAIN_LABEL = os.environ.get("PROMETHEUS_METRICS_WITH_D
 TCP_THREADS = int(os.environ.get("TCP_THREADS", 0))
 UDP_THREADS = int(os.environ.get("UDP_THREADS", 5))
 
+REDIS_KEY_NODE_HEALTHY_SUFFIX = os.environ.get("REDIS_KEY_NODE_HEALTHY_SUFFIX") or "testnode0"
+REDIS_KEY_NODE_HEALTHY = (os.environ.get("REDIS_KEY_NODE_HEALTHY") or "node:healthy") + ":" + REDIS_KEY_NODE_HEALTHY_SUFFIX
+NODE_HEALTHY_FILENAME = os.environ.get("NODE_HEALTHY_FILENAME") or ".node_healthy"
+
+
+@contextmanager
+def get_redis(redis_pool):
+    r = redis.Redis(connection_pool=redis_pool)
+    try:
+        yield r
+    finally:
+        r.close()
+
+
 def get_domain_internal_hostname(redis_pool, domain):
     """returns the domain's internal_hostname if domain is available for receiving connections else returns None"""
-    r = redis.Redis(connection_pool=redis_pool)
-    if r.exists(REDIS_KEY_WORKER_AVAILABLE.format(domain)):
-        hostname = r.get(REDIS_KEY_WORKER_INGRESS_HOSTNAME.format(domain))
-        r.close()
-        if hostname:
-            try:
-                return json.loads(hostname.decode())[VDNS_PROTOCOL]
-            except:
-                return None
+    hostname = None
+    with get_redis(redis_pool) as r:
+        if r.exists(REDIS_KEY_WORKER_AVAILABLE.format(domain)):
+            hostname = r.get(REDIS_KEY_WORKER_INGRESS_HOSTNAME.format(domain))
+    if hostname:
+        try:
+            return json.loads(hostname.decode())[VDNS_PROTOCOL]
+        except:
+            return None
     else:
-        r.close()
         return None
 
 
@@ -75,13 +91,15 @@ def get_domain_ipv4(redis_pool, domain):
 
 
 def is_domain_error(redis_pool, domain):
-    r = redis.Redis(connection_pool=redis_pool)
-    is_error = r.exists(REDIS_KEY_WORKER_ERROR.format(domain)) > 0
-    r.close()
-    return is_error
+    with get_redis(redis_pool) as r:
+        return r.exists(REDIS_KEY_WORKER_ERROR.format(domain)) > 0
 
 
 def set_domain_initialize(redis_pool, domain):
-    r = redis.Redis(connection_pool=redis_pool)
-    r.set(REDIS_KEY_WORKER_INITIALIZE.format(domain), "")
-    r.close()
+    with get_redis(redis_pool) as r:
+        r.set(REDIS_KEY_WORKER_INITIALIZE.format(domain), "")
+
+
+def get_node_healthy(redis_pool):
+    with get_redis(redis_pool) as r:
+        return r.exists(REDIS_KEY_NODE_HEALTHY)

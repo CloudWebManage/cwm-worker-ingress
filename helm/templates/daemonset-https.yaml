@@ -101,3 +101,5 @@ spec:
           value: {{ $.Values.vdns.tcpThreads | quote }}
         - name: UDP_THREADS
           value: {{ $.Values.vdns.udpThreads | quote }}
+        - name: NODE_HEALTHY_FILENAME
+          value: "disabled"

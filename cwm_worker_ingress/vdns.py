@@ -1,15 +1,24 @@
+import os
 import time
-import datetime
 
-import dnslib.server
-from dnslib.server import DNSLogger
 import redis
+import dnslib.server
 import prometheus_client
 
 from cwm_worker_ingress import resolver
 from cwm_worker_ingress import config
 from cwm_worker_ingress import metrics
 from cwm_worker_ingress import logs
+
+
+def update_node_health_file(write_redis_pool):
+    if config.NODE_HEALTHY_FILENAME != "disabled":
+        if config.get_node_healthy(write_redis_pool):
+            if not os.path.exists(config.NODE_HEALTHY_FILENAME):
+                with open(config.NODE_HEALTHY_FILENAME, "w") as f:
+                    f.write("OK")
+        elif os.path.exists(config.NODE_HEALTHY_FILENAME):
+            os.unlink(config.NODE_HEALTHY_FILENAME)
 
 
 def main(port):
@@ -50,6 +59,8 @@ def main(port):
 
     try:
         while True:
+            # we use the write_redis_pool here to ensure we have good connection to the source redis pool
+            update_node_health_file(write_redis_pool)
             time.sleep(config.MAIN_PROCESS_REFRESH_SECONDS)
     except KeyboardInterrupt:
         pass
