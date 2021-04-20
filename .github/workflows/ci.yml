@@ -99,3 +99,13 @@ jobs:
           git commit -m "automatic update of cwm-worker-ingress" &&\
           git push origin master
         fi
+
+    - uses: 8398a7/action-slack@v3
+      if: github.ref == 'refs/heads/master'
+      with:
+        status: ${{ job.status }}
+        author_name: ${{ github.actor }}
+        fields: all
+        if_mention: success,failure
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
