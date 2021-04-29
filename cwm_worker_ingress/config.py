@@ -38,10 +38,10 @@ if REDIS_WRITE_HOST:
 else:
     REDIS_REPLICA = False
     REDIS_WRITE_HOST, REDIS_WRITE_PORT = REDIS_HOST, REDIS_PORT
-REDIS_KEY_WORKER_AVAILABLE = "worker:available:{}"
-REDIS_KEY_WORKER_INGRESS_HOSTNAME = "worker:ingress:hostname:{}"
-REDIS_KEY_WORKER_ERROR = "worker:error:{}"
-REDIS_KEY_WORKER_INITIALIZE = "worker:initialize:{}"
+REDIS_KEY_HOSTNAME_AVAILABLE = "hostname:available:{}"
+REDIS_KEY_HOSTNAME_INGRESS_HOSTNAME = "hostname:ingress:hostname:{}"
+REDIS_KEY_HOSTNAME_ERROR = "hostname:error:{}"
+REDIS_KEY_HOSTNAME_INITIALIZE = "hostname:initialize:{}"
 
 PROMETHEUS_METRICS_PORT = int(os.environ.get("PROMETHEUS_METRICS_PORT") or "8088")
 PROMETHEUS_METRICS_WITH_DOMAIN_LABEL = os.environ.get("PROMETHEUS_METRICS_WITH_DOMAIN_LABEL") == "yes"
@@ -67,8 +67,8 @@ def get_domain_internal_hostname(redis_pool, domain):
     """returns the domain's internal_hostname if domain is available for receiving connections else returns None"""
     hostname = None
     with get_redis(redis_pool) as r:
-        if r.exists(REDIS_KEY_WORKER_AVAILABLE.format(domain)):
-            hostname = r.get(REDIS_KEY_WORKER_INGRESS_HOSTNAME.format(domain))
+        if r.exists(REDIS_KEY_HOSTNAME_AVAILABLE.format(domain)):
+            hostname = r.get(REDIS_KEY_HOSTNAME_INGRESS_HOSTNAME.format(domain))
     if hostname:
         try:
             return json.loads(hostname.decode())[VDNS_PROTOCOL]
@@ -92,12 +92,12 @@ def get_domain_ipv4(redis_pool, domain):
 
 def is_domain_error(redis_pool, domain):
     with get_redis(redis_pool) as r:
-        return r.exists(REDIS_KEY_WORKER_ERROR.format(domain)) > 0
+        return r.exists(REDIS_KEY_HOSTNAME_ERROR.format(domain)) > 0
 
 
 def set_domain_initialize(redis_pool, domain):
     with get_redis(redis_pool) as r:
-        r.set(REDIS_KEY_WORKER_INITIALIZE.format(domain), "")
+        r.set(REDIS_KEY_HOSTNAME_INITIALIZE.format(domain), "")
 
 
 def get_node_healthy(redis_pool):
