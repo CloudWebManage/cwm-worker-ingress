@@ -14,9 +14,9 @@ while true; do
   [ "${ELAPSED_SECONDS}" == "30" ] && echo waited too long for pods to be ready && exit 1
 done
 
-kubectl exec redis -- redis-cli del worker:available:tests.cwm-worker-ingress.com &&\
-kubectl exec redis -- redis-cli del worker:ingress:hostname:tests.cwm-worker-ingress.com &&\
-kubectl exec redis -- redis-cli del worker:initialize:tests.cwm-worker-ingress.com
+kubectl exec redis -- redis-cli del hostname:available:tests.cwm-worker-ingress.com &&\
+kubectl exec redis -- redis-cli del hostname:ingress:hostname:tests.cwm-worker-ingress.com &&\
+kubectl exec redis -- redis-cli del hostname:initialize:tests.cwm-worker-ingress.com
 [ "$?" != "0" ] && echo failed to clear redis && exit 1
 
 sleep 2
@@ -31,14 +31,14 @@ if [ "$(expr "${OUTPUT} < 5")" == "1" ]; then
   exit 1
 fi
 
-if [ "$(kubectl exec redis -- redis-cli exists worker:initialize:tests.cwm-worker-ingress.com)" != "1" ]; then
+if [ "$(kubectl exec redis -- redis-cli exists hostname:initialize:tests.cwm-worker-ingress.com)" != "1" ]; then
   echo initialize request for tests.cwm-worker-ingress.com was not avaialble in main redis
   exit 1
 fi
 
-kubectl exec redis -- redis-cli set worker:available:tests2.cwm-worker-ingress.com "" &&\
-kubectl exec redis -- redis-cli set worker:ingress:hostname:tests2.cwm-worker-ingress.com '{"http":"tests.default.svc.cluster.local","https":"tests.default.svc.cluster.local"}' &&\
-kubectl exec redis -- redis-cli del worker:initialize:tests2.cwm-worker-ingress.com
+kubectl exec redis -- redis-cli set hostname:available:tests2.cwm-worker-ingress.com "" &&\
+kubectl exec redis -- redis-cli set hostname:ingress:hostname:tests2.cwm-worker-ingress.com '{"http":"tests.default.svc.cluster.local","https":"tests.default.svc.cluster.local"}' &&\
+kubectl exec redis -- redis-cli del hostname:initialize:tests2.cwm-worker-ingress.com
 [ "$?" != "0" ] && echo failed to set redis values && exit 1
 
 if ! OUTPUT="$(/usr/bin/time -f "%e" kubectl exec tests -- curl -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http | grep 'Thank you for using nginx')"; then

@@ -2,6 +2,6 @@
 
 DOMAIN="${1}"
 
-for KEY in "worker:available:${DOMAIN}" "worker:ingress:hostname:${DOMAIN}" "worker:error:${DOMAIN}" "worker:initialize:${DOMAIN}"; do
+for KEY in "hostname:available:${DOMAIN}" "hostname:ingress:hostname:${DOMAIN}" "hostname:error:${DOMAIN}" "hostname:initialize:${DOMAIN}"; do
   redis-cli del "${KEY}" >/dev/null
 done
