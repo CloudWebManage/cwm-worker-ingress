@@ -168,7 +168,7 @@ docker-compose -f docker-compose.yaml -f docker-compose-https.yaml up --build -d
 Login to GitHub Packages, for password use a personal access token
 
 ```
-docker login https://docker.pkg.github.com -u USERNAME
+docker login https://ghcr.io -u USERNAME
 ```
 
 Build images
@@ -180,10 +180,10 @@ docker-compose build
 Tag and push
 
 ```
-docker tag cwm-worker-ingress_vdns:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
-docker tag cwm-worker-ingress_nginx:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
-docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
-docker push docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest
+docker tag cwm-worker-ingress_vdns:latest ghcr.io/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
+docker tag cwm-worker-ingress_nginx:latest ghcr.io/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
+docker push ghcr.io/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
+docker push ghcr.io/cloudwebmanage/cwm-worker-ingress/nginx:latest
 ```
 
 ## Local Kubernetes production environment
@@ -243,11 +243,6 @@ kubectl exec redis -- redis-cli ping
 Deploy using one of the following options:
 
 * Use the published Docker images:
-  * Set your GitHub username and token in env vars:
-    * `GITHUB_USER=`
-    * `GITHUB_TOKEN=`
-  * Create a docker pull secret
-    * `echo '{"auths":{"docker.pkg.github.com":{"auth":"'"$(echo -n "${GITHUB_USER}:${GITHUB_TOKEN}" | base64)"'"}}}' | kubectl create secret generic github --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/dev/stdin`
   * Deploy
     * `helm upgrade --install cwm-worker-ingress ./helm`
 
@@ -255,8 +250,8 @@ Deploy using one of the following options:
   * Switch Docker daemon to use the minikube Docker daemon: `eval $(minikube -p minikube docker-env)`
 ```
 docker-compose build &&\
-docker tag cwm-worker-ingress_nginx:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
-docker tag cwm-worker-ingress_vdns:latest docker.pkg.github.com/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
+docker tag cwm-worker-ingress_nginx:latest ghcr.io/cloudwebmanage/cwm-worker-ingress/nginx:latest &&\
+docker tag cwm-worker-ingress_vdns:latest ghcr.io/cloudwebmanage/cwm-worker-ingress/vdns:latest &&\
 helm upgrade --install --wait --set "vdns.debugVerbosity=8,debug=true" cwm-worker-ingress ./helm
 ```
 
