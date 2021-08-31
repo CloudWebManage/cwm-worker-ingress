@@ -67,7 +67,10 @@ jobs:
           uci minikube install --version "${MINIKUBE_VERSION}" --with-sudo &&\
           uci helm install --version "${HELM_VERSION}" --with-sudo &&\
           minikube start --driver=docker --kubernetes-version=${MINIKUBE_KUBERNETES_VERSION} &&\
-          kubectl get nodes &&\
+          uci util wait-for --timeout-seconds 240 --timeout-message "waited too long for minikube to start" \
+            "minikube status 2>&1 >/dev/null" &&\
+          uci util wait-for --timeout-seconds 240 --timeout-message "waited too long for minikube node to be ready" \
+            'kubectl get nodes | grep " Ready "' &&\
           helm upgrade --install --wait cwm-worker-ingress ./helm &&\
           cat tests/k8s-tests.yaml | kubectl apply -f -
           [ "$?" != "0" ] && exit 1
