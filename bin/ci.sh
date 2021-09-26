@@ -79,7 +79,7 @@ if [ "$(uci github actions get-branch-name)" == "master" ]; then
     cat tests/k8s-tests.yaml | kubectl apply -f -
     [ "$?" != "0" ] && exit 1
     sleep 5
-    ./tests/k8s_tests.sh
+    tests/k8s_tests.sh
     K8S_TESTS_RES="$?"
     echo K8S_TESTS_RES=$K8S_TESTS_RES
     POD=$(kubectl get pods | grep cwm-worker-ingress-http- | tee /dev/stderr | cut -d " " -f1)

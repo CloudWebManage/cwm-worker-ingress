@@ -13,7 +13,7 @@ jobs:
         MINIKUBE_KUBERNETES_VERSION: "v1.18.15"
         KUBECTL_VERSION: "v1.19.0"
       run: |
-        ./bin/ci.sh
+        bin/ci.sh
 
     - uses: 8398a7/action-slack@v3
       if: github.ref == 'refs/heads/master'
