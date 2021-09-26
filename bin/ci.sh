@@ -9,10 +9,6 @@ failure() {
 }
 trap 'failure ${LINENO} "$BASH_COMMAND"' ERR
 
-curl -s "https://raw.githubusercontent.com/CloudWebManage/uumpa-ci-toolbox/main/bin/github_actions_install.sh" \
-    | bash -s 807a483b65f3ec28787300499d961338a9d6bc4a CloudWebManage/uumpa-ci-toolbox
-uci github actions self-checkout --config-user-name "cwm-worker-ingress-ci"
-
 sudo apt-get install -y redis-tools
 python -m venv venv
 venv/bin/pip install --upgrade pip
