@@ -28,7 +28,7 @@ fi
 if [ "$(expr "$(cat $TEMPFILE | tail -1)" '>' "${EXPECTED_TIME}")" == "1" ]; then
   cat $TEMPFILE
   rm -f $TEMPFILE
-  echo "expected to complete in less then ${EXPECTED_TIME} seconds"
+  echo "expected to complete in less than ${EXPECTED_TIME} seconds"
   exit 1
 fi
 rm -f $TEMPFILE
