@@ -32,7 +32,7 @@ echo ERROR > status.txt
 ELAPSED_SECONDS=0
 while true; do
     sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
-    ! kill -0 $PID && break
+    ! ps -p $PID > /dev/null && break
     [ "${ELAPSED_SECONDS}" == "60" ] && echo TIMEOUT > status.txt && break
 done
 
@@ -72,7 +72,8 @@ if [ "$(uci github actions get-branch-name)" == "master" ]; then
     uci util wait-for --timeout-seconds 240 --timeout-message "waited too long for minikube node to be ready" \
         'kubectl get nodes | grep " Ready "'
     helm upgrade --install --wait cwm-worker-ingress ./helm
-    cat tests/k8s-tests.yaml | kubectl apply -f -
+    sleep 5
+    kubectl apply -f tests/k8s-tests.yaml
     [ "$?" != "0" ] && exit 1
     sleep 5
     tests/k8s_tests.sh
