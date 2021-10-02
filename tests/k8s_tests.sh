@@ -32,13 +32,13 @@ if kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for usi
   echo request to tests.cwm-worker-ingress.com was successfull, expected it to fail
   exit 1
 fi
-echo ">>> 35: time: $(cat .time)"
-if expr $(cat .time) '<' 5; then
+TIME="$(cat .time)"
+if (( $(echo "$TIME < 5" | bc -l) )); then
   echo request to tests.cwm-worker-ingress.com was too quick, expected it to take more than 5 seconds
   exit 1
 fi
-echo ">>> 40: time: $(cat .time)"
-if expr $(cat .time) '>' 7; then
+TIME="$(cat .time)"
+if (( $(echo "$TIME > 7" | bc -l) )); then
   echo request to tests.cwm-worker-ingress.com was too slow, expected it to take less than 7 seconds
   exit 1
 fi
@@ -62,8 +62,8 @@ if ! kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for u
   echo request to tests2 http failed, expected it to succeed
   exit 1
 fi
-echo ">>> 65: time: $(cat .time)"
-if expr $(cat .time) '>' 1; then
+TIME="$(cat .time)"
+if (( $(echo "$TIME > 1" | bc -l) )); then
   echo request to tests2 http took too long
   exit 1
 fi
