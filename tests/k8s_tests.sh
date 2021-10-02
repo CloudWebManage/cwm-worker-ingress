@@ -37,7 +37,7 @@ if expr $(cat .time) '>' 7; then
 fi
 
 if [ "$(kubectl exec redis -- redis-cli exists hostname:initialize:tests.cwm-worker-ingress.com)" != "1" ]; then
-  echo initialize request for tests.cwm-worker-ingress.com was not avaialble in main redis
+  echo "initialize request for tests.cwm-worker-ingress.com was not available in main redis"
   exit 1
 fi
 
