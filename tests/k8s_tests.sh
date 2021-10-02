@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "running k8s_tests.sh"
+echo ">>> running k8s_tests.sh"
 
 ELAPSED_SECONDS=0
 while true; do
@@ -23,8 +23,11 @@ kubectl exec redis -- redis-cli del hostname:initialize:tests.cwm-worker-ingress
 
 sleep 2
 
-echo ">>> kubectl exec tests -- ping cwm-worker-ingress-http"
-kubectl exec tests -- ping cwm-worker-ingress-http
+echo ">>> kubectl exec tests -- cat /etc/hosts"
+kubectl exec tests -- cat /etc/hosts
+
+echo ">>> kubectl exec tests -- curl http://tests.cwm-worker-ingress.com"
+kubectl exec tests -- curl http://tests.cwm-worker-ingress.com
 
 echo ">>> kubectl exec tests -- curl http://cwm-worker-ingress-http"
 kubectl exec tests -- curl http://cwm-worker-ingress-http
