@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "running k8s_tests.sh"
+
 ELAPSED_SECONDS=0
 while true; do
   sleep 1 && ELAPSED_SECONDS="$(expr $ELAPSED_SECONDS + 1)"
@@ -45,6 +47,8 @@ kubectl exec redis -- redis-cli set hostname:available:tests2.cwm-worker-ingress
 kubectl exec redis -- redis-cli set hostname:ingress:hostname:tests2.cwm-worker-ingress.com '{"http":"tests.default.svc.cluster.local","https":"tests.default.svc.cluster.local"}' &&\
 kubectl exec redis -- redis-cli del hostname:initialize:tests2.cwm-worker-ingress.com
 [ "$?" != "0" ] && echo failed to set redis values && exit 1
+
+echo "executing command: curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http"
 
 /usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http
 if ! kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for using nginx'; then
