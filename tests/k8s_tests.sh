@@ -23,10 +23,16 @@ kubectl exec redis -- redis-cli del hostname:initialize:tests.cwm-worker-ingress
 
 sleep 2
 
-echo "executing command: kubectl exec tests -- curl --max-time 20 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http"
+echo ">>> kubectl exec tests -- ping cwm-worker-ingress-http"
+kubectl exec tests -- ping cwm-worker-ingress-http
+
+echo ">>> kubectl exec tests -- curl http://cwm-worker-ingress-http"
+kubectl exec tests -- curl http://cwm-worker-ingress-http
+
+echo ">>> kubectl exec tests -- curl --max-time 20 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http"
 
 /usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http
-echo "29: exit code: $?"
+echo ">>> 29: exit code: $?"
 if kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for using nginx'; then
   cat .time
   echo request to tests.cwm-worker-ingress.com was successfull, expected it to fail
@@ -51,10 +57,10 @@ kubectl exec redis -- redis-cli set hostname:ingress:hostname:tests2.cwm-worker-
 kubectl exec redis -- redis-cli del hostname:initialize:tests2.cwm-worker-ingress.com
 [ "$?" != "0" ] && echo failed to set redis values && exit 1
 
-echo "executing command: curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http"
+echo ">>> curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http"
 
 /usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http
-echo "57: exit code: $?"
+echo ">>> 63: exit code: $?"
 if ! kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for using nginx'; then
   cat .time
   echo request to tests2 http failed, expected it to succeed
