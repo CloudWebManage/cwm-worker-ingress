@@ -74,8 +74,8 @@ uci docker tag-push \
     helm upgrade --install --wait cwm-worker-ingress ./helm
     sleep 5
     kubectl apply -f tests/k8s-tests.yaml
-    [ "$?" != "0" ] && exit 1
-    sleep 5
+    [ "$?" != "0" ] && echo "failed to apply tests/k8s-tests.yaml" && exit 1
+    sleep 10
     tests/k8s_tests.sh
     K8S_TESTS_RES="$?"
     echo K8S_TESTS_RES=$K8S_TESTS_RES
