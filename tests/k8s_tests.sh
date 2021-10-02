@@ -23,9 +23,6 @@ kubectl exec redis -- redis-cli del hostname:initialize:tests.cwm-worker-ingress
 
 sleep 2
 
-echo ">>> kubectl exec tests -- curl http://cwm-worker-ingress-http"
-kubectl exec tests -- curl http://cwm-worker-ingress-http
-
 echo ">>> kubectl exec tests -- curl --max-time 20 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http"
 
 /usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http
@@ -57,7 +54,7 @@ kubectl exec redis -- redis-cli del hostname:initialize:tests2.cwm-worker-ingres
 echo ">>> curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http"
 
 /usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http
-echo ">>> 63: exit code: $?"
+echo ">>> 53: exit code: $?"
 if ! kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for using nginx'; then
   cat .time
   echo request to tests2 http failed, expected it to succeed
