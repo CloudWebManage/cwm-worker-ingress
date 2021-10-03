@@ -19,25 +19,32 @@ kubectl exec redis -- redis-cli del hostname:ingress:hostname:tests.cwm-worker-i
 kubectl exec redis -- redis-cli del hostname:initialize:tests.cwm-worker-ingress.com
 [ "$?" != "0" ] && echo failed to clear redis && exit 1
 
-sleep 2
+kubectl -n kube-system rollout restart deployment coredns
+sleep 30
+kubectl -n kube-system get all
 
-/usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http
+URL=http://cwm-worker-ingress-http
+
+/usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests.cwm-worker-ingress.com' $URL
+[ "$?" != "0" ] && echo "failed to curl with 'Host: tests.cwm-worker-ingress.com'" && exit 1
 if kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for using nginx'; then
   cat .time
-  echo request to tests.cwm-worker-ingress.com was successfull, expected it to fail
+  echo request to tests.cwm-worker-ingress.com was successful, expected it to fail
   exit 1
 fi
-if expr $(cat .time) '<' 5; then
+TIME="$(cat .time)"
+if (( $(echo "$TIME < 5" | bc -l) )); then
   echo request to tests.cwm-worker-ingress.com was too quick, expected it to take more than 5 seconds
   exit 1
 fi
-if expr $(cat .time) '>' 7; then
+TIME="$(cat .time)"
+if (( $(echo "$TIME > 7" | bc -l) )); then
   echo request to tests.cwm-worker-ingress.com was too slow, expected it to take less than 7 seconds
   exit 1
 fi
 
 if [ "$(kubectl exec redis -- redis-cli exists hostname:initialize:tests.cwm-worker-ingress.com)" != "1" ]; then
-  echo initialize request for tests.cwm-worker-ingress.com was not avaialble in main redis
+  echo "initialize request for tests.cwm-worker-ingress.com was not available in main redis"
   exit 1
 fi
 
@@ -46,26 +53,28 @@ kubectl exec redis -- redis-cli set hostname:ingress:hostname:tests2.cwm-worker-
 kubectl exec redis -- redis-cli del hostname:initialize:tests2.cwm-worker-ingress.com
 [ "$?" != "0" ] && echo failed to set redis values && exit 1
 
-/usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http
+/usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' $URL
+[ "$?" != "0" ] && echo "failed to curl with 'Host: tests2.cwm-worker-ingress.com'" && exit 1
 if ! kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for using nginx'; then
   cat .time
   echo request to tests2 http failed, expected it to succeed
   exit 1
 fi
-if expr $(cat .time) '>' 1; then
+TIME="$(cat .time)"
+if (( $(echo "$TIME > 1" | bc -l) )); then
   echo request to tests2 http took too long
   exit 1
 fi
 
 kubectl exec redis -- redis-cli del node:healthy:minikube
 sleep 1
-if ! kubectl exec tests -- curl --max-time 10 -s http://cwm-worker-ingress-http/healthz | grep "404 Not Found"; then
+if ! kubectl exec tests -- curl --max-time 10 -s $URL/healthz | grep "404 Not Found"; then
   echo after delete of node healthy redis key healthz response was not 404
   exit 1
 fi
 kubectl exec redis -- redis-cli set node:healthy:minikube ""
 sleep 1
-if ! kubectl exec tests -- curl --max-time 10 -s http://cwm-worker-ingress-http/healthz | grep "OK"; then
+if ! kubectl exec tests -- curl --max-time 10 -s $URL/healthz | grep "OK"; then
   echo after set of node healthy redis key healthz response was not OK
   exit 1
 fi

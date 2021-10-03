@@ -74,8 +74,8 @@ if [ "$(uci github actions get-branch-name)" == "master" ]; then
     helm upgrade --install --wait cwm-worker-ingress ./helm
     sleep 5
     kubectl apply -f tests/k8s-tests.yaml
-    [ "$?" != "0" ] && exit 1
-    sleep 5
+    [ "$?" != "0" ] && echo "failed to apply tests/k8s-tests.yaml" && exit 1
+    sleep 10
     tests/k8s_tests.sh
     K8S_TESTS_RES="$?"
     echo K8S_TESTS_RES=$K8S_TESTS_RES
@@ -88,7 +88,8 @@ if [ "$(uci github actions get-branch-name)" == "master" ]; then
     kubectl logs $POD -c nginx
     echo "-- vdns logs --"
     kubectl logs $POD -c vdns
-    [ "${K8S_TESTS_RES}" != "0" ] && exit 1
+    echo "---------------"
+    [ "${K8S_TESTS_RES}" != "0" ] && echo "K8S_TESTS_RES=$K8S_TESTS_RES" && exit 1
     uci git checkout \
         --github-repo-name CloudWebManage/cwm-worker-helm \
         --branch-name master \
@@ -104,3 +105,5 @@ if [ "$(uci github actions get-branch-name)" == "master" ]; then
     git commit -m "automatic update of cwm-worker-ingress"
     git push origin master
 fi
+
+exit 0

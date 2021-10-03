@@ -16,7 +16,8 @@ if [ "$(echo "${OUTPUT}" | head -n1)" != "${EXPECTED_IP}" ]; then
   echo "expected ip: ${EXPECTED_IP}"
   exit 1
 fi
-if [ "$(expr "$(echo "${OUTPUT}" | tail -1)" '>' "${EXPECTED_TIME}")" == "1" ]; then
+TIME="$(echo "$OUTPUT" | tail -1)"
+if (( $(echo "$TIME > $EXPECTED_TIME" | bc -l) )); then
   echo "${OUTPUT}"
   echo "expected to complete in less than ${EXPECTED_TIME} seconds"
   exit 1
