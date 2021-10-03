@@ -89,7 +89,7 @@ uci docker tag-push \
     echo "-- vdns logs --"
     kubectl logs $POD -c vdns
     echo "---------------"
-    # [ "${K8S_TESTS_RES}" != "0" ] && echo "K8S_TESTS_RES=$K8S_TESTS_RES" && exit 1
+    [ "${K8S_TESTS_RES}" != "0" ] && echo "K8S_TESTS_RES=$K8S_TESTS_RES" && exit 1
     # uci git checkout \
     #     --github-repo-name CloudWebManage/cwm-worker-helm \
     #     --branch-name master \
@@ -105,3 +105,5 @@ uci docker tag-push \
     # git commit -m "automatic update of cwm-worker-ingress"
     # git push origin master
 # fi
+
+exit 0

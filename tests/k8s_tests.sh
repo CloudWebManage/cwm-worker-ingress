@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -xv
+
 echo ">>> running k8s_tests.sh"
 
 ELAPSED_SECONDS=0
