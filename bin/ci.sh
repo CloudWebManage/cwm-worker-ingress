@@ -56,7 +56,7 @@ uci docker tag-push \
     --source-tag-name nginx \
     --push-tag-name "ghcr.io/cloudwebmanage/cwm-worker-ingress/nginx:$GITHUB_SHA"
 
-# if [ "$(uci github actions get-branch-name)" == "master" ]; then
+if [ "$(uci github actions get-branch-name)" == "master" ]; then
     uci docker tag-push \
         --source-tag-name vdns \
         --push-tag-name ghcr.io/cloudwebmanage/cwm-worker-ingress/vdns:latest
@@ -90,20 +90,20 @@ uci docker tag-push \
     kubectl logs $POD -c vdns
     echo "---------------"
     [ "${K8S_TESTS_RES}" != "0" ] && echo "K8S_TESTS_RES=$K8S_TESTS_RES" && exit 1
-    # uci git checkout \
-    #     --github-repo-name CloudWebManage/cwm-worker-helm \
-    #     --branch-name master \
-    #     --ssh-key "${CWM_WORKER_HELM_DEPLOY_KEY}" \
-    #     --path cwm-worker-helm \
-    #     --config-user-name cwm-worker-ingress-ci
-    # sed -i "s/appVersion: latest/appVersion: ${GITHUB_SHA}/g" helm/Chart.yaml
-    # helm package ./helm --version "0.0.0-$(date +%Y%m%dT%H%M%S)" --destination ./cwm-worker-helm/cwm-worker-ingress
-    # helm repo index --url "https://raw.githubusercontent.com/CloudWebManage/cwm-worker-helm/master/cwm-worker-ingress/" \
-    #     ./cwm-worker-helm/cwm-worker-ingress
-    # cd cwm-worker-helm
-    # git add cwm-worker-ingress
-    # git commit -m "automatic update of cwm-worker-ingress"
-    # git push origin master
-# fi
+    uci git checkout \
+        --github-repo-name CloudWebManage/cwm-worker-helm \
+        --branch-name master \
+        --ssh-key "${CWM_WORKER_HELM_DEPLOY_KEY}" \
+        --path cwm-worker-helm \
+        --config-user-name cwm-worker-ingress-ci
+    sed -i "s/appVersion: latest/appVersion: ${GITHUB_SHA}/g" helm/Chart.yaml
+    helm package ./helm --version "0.0.0-$(date +%Y%m%dT%H%M%S)" --destination ./cwm-worker-helm/cwm-worker-ingress
+    helm repo index --url "https://raw.githubusercontent.com/CloudWebManage/cwm-worker-helm/master/cwm-worker-ingress/" \
+        ./cwm-worker-helm/cwm-worker-ingress
+    cd cwm-worker-helm
+    git add cwm-worker-ingress
+    git commit -m "automatic update of cwm-worker-ingress"
+    git push origin master
+fi
 
 exit 0
