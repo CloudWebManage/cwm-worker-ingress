@@ -21,16 +21,17 @@ kubectl exec redis -- redis-cli del hostname:initialize:tests.cwm-worker-ingress
 
 sleep 2
 
+URL=http://cwm-worker-ingress-http
 ELAPSED_SECONDS=0
 while true; do
-  sleep 1 && ELAPSED_SECONDS="$(( ELAPSED_SECONDS + 1 ))"
-  if curl http://cwm-worker-ingress-http > /dev/null; then
+  ELAPSED_SECONDS="$(( ELAPSED_SECONDS + 10 ))"
+  if curl -s --max-time 10 $URL; then
     break
   fi
-  (( ELAPSED_SECONDS == 120 )) && echo "waited too long for host to be available" && exit 1
+  (( ELAPSED_SECONDS == 300 )) && echo "waited too long for host to be available" && exit 1
 done
 
-/usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http
+/usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests.cwm-worker-ingress.com' $URL
 [ "$?" != "0" ] && echo "failed to curl with 'Host: tests.cwm-worker-ingress.com'" && exit 1
 if kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for using nginx'; then
   cat .time
@@ -58,7 +59,7 @@ kubectl exec redis -- redis-cli set hostname:ingress:hostname:tests2.cwm-worker-
 kubectl exec redis -- redis-cli del hostname:initialize:tests2.cwm-worker-ingress.com
 [ "$?" != "0" ] && echo failed to set redis values && exit 1
 
-/usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' http://cwm-worker-ingress-http
+/usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests2.cwm-worker-ingress.com' $URL
 [ "$?" != "0" ] && echo "failed to curl with 'Host: tests2.cwm-worker-ingress.com'" && exit 1
 if ! kubectl exec tests -- cat .output | tee /dev/stderr | grep 'Thank you for using nginx'; then
   cat .time
@@ -73,13 +74,13 @@ fi
 
 kubectl exec redis -- redis-cli del node:healthy:minikube
 sleep 1
-if ! kubectl exec tests -- curl --max-time 10 -s http://cwm-worker-ingress-http/healthz | grep "404 Not Found"; then
+if ! kubectl exec tests -- curl --max-time 10 -s $URL/healthz | grep "404 Not Found"; then
   echo after delete of node healthy redis key healthz response was not 404
   exit 1
 fi
 kubectl exec redis -- redis-cli set node:healthy:minikube ""
 sleep 1
-if ! kubectl exec tests -- curl --max-time 10 -s http://cwm-worker-ingress-http/healthz | grep "OK"; then
+if ! kubectl exec tests -- curl --max-time 10 -s $URL/healthz | grep "OK"; then
   echo after set of node healthy redis key healthz response was not OK
   exit 1
 fi
