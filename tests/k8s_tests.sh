@@ -19,17 +19,10 @@ kubectl exec redis -- redis-cli del hostname:ingress:hostname:tests.cwm-worker-i
 kubectl exec redis -- redis-cli del hostname:initialize:tests.cwm-worker-ingress.com
 [ "$?" != "0" ] && echo failed to clear redis && exit 1
 
-sleep 2
+kubectl -n kube-system rollout restart deployment coredns
+sleep 5
 
 URL=http://cwm-worker-ingress-http
-ELAPSED_SECONDS=0
-while true; do
-  ELAPSED_SECONDS="$(( ELAPSED_SECONDS + 10 ))"
-  if curl -s --max-time 10 $URL; then
-    break
-  fi
-  (( ELAPSED_SECONDS == 300 )) && echo "waited too long for host to be available" && exit 1
-done
 
 /usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests.cwm-worker-ingress.com' $URL
 [ "$?" != "0" ] && echo "failed to curl with 'Host: tests.cwm-worker-ingress.com'" && exit 1
