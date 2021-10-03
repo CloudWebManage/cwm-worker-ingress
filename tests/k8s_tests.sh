@@ -23,9 +23,9 @@ kubectl exec redis -- redis-cli del hostname:ingress:hostname:tests.cwm-worker-i
 kubectl exec redis -- redis-cli del hostname:initialize:tests.cwm-worker-ingress.com
 [ "$?" != "0" ] && echo failed to clear redis && exit 1
 
-sleep 2
+sleep 5
 
-echo ">>> kubectl exec tests -- curl --max-time 20 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http"
+echo ">>> kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http"
 
 /usr/bin/time -f "%e" -o .time kubectl exec tests -- curl --max-time 10 -o .output -sH 'Host: tests.cwm-worker-ingress.com' http://cwm-worker-ingress-http
 echo ">>> 29: exit code: $?"
