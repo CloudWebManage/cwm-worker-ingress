@@ -20,7 +20,8 @@ kubectl exec redis -- redis-cli del hostname:initialize:tests.cwm-worker-ingress
 [ "$?" != "0" ] && echo failed to clear redis && exit 1
 
 kubectl -n kube-system rollout restart deployment coredns
-sleep 5
+sleep 30
+kubectl -n kube-system get all
 
 URL=http://cwm-worker-ingress-http
 
