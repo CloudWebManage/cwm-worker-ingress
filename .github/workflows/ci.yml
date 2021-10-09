@@ -19,7 +19,7 @@ jobs:
         bin/ci.sh
 
     - uses: 8398a7/action-slack@v3
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/main'
       with:
         status: ${{ job.status }}
         author_name: ${{ github.actor }}
