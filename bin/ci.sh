@@ -56,7 +56,7 @@ uci docker tag-push \
     --source-tag-name nginx \
     --push-tag-name "ghcr.io/cloudwebmanage/cwm-worker-ingress/nginx:$GITHUB_SHA"
 
-if [ "$(uci github actions get-branch-name)" == "master" ]; then
+if [ "$(uci github actions get-branch-name)" == "main" ]; then
     uci docker tag-push \
         --source-tag-name vdns \
         --push-tag-name ghcr.io/cloudwebmanage/cwm-worker-ingress/vdns:latest
