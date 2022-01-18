@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: cwm-worker-ingress-https
+  {{ if .Values.namespace }}namespace: {{ .Values.namespace | quote }}{{ end }}
 spec:
   minReadySeconds: 5
   updateStrategy:

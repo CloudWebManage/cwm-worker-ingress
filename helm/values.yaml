@@ -1,3 +1,4 @@
+namespace: ""
 debug: false
 replicas: 1
 revisionHistoryLimit: 2
