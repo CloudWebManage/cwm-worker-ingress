@@ -43,6 +43,7 @@ class Resolver:
 
     def resolve(self, request, handler):
         start_time = datetime.datetime.now()
+        self.logs.debug("Start resolve: {}".format(start_time), verbosity=10)
         reply = request.reply()
         if request.q.qtype == dnslib.QTYPE.A:
             domain = str(request.q.qname)[:-1]
@@ -53,6 +54,7 @@ class Resolver:
                 else:
                     self.logs.debug("Resolving: {}".format(domain))
                     ipv4 = config.get_domain_ipv4(self.read_redis_pool, domain)
+                    self.logs.debug("ipv4={}".format(ipv4), verbosity=10)
                     if ipv4:
                         self.logs.debug("success_cached (domain={})".format(domain), 1, start_time=start_time)
                         self._reply_success(request, reply, ipv4)
