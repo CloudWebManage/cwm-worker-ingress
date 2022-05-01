@@ -26,8 +26,12 @@ spec:
     ports:
     - protocol: UDP
       port: 53
+    {{- if not (eq .Values.vdns.redisHost "localhost") }}
     - protocol: TCP
-      port: 80
+      port: {{ .Values.vdns.redisPort }}
+    {{- end }}
+    {{- if not (eq .Values.vdns.redisWriteHost "localhost") }}
     - protocol: TCP
       port: {{ .Values.vdns.redisWritePort }}
+    {{- end }}
 {{- end }}
