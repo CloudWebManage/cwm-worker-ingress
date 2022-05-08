@@ -216,10 +216,10 @@ helm version
 
 ### Deployment
 
-Create a cluster
+Create a cluster:
 
-```
-minikube start --driver=docker --kubernetes-version=v1.16.14
+```shell
+minikube start --driver=docker --kubernetes-version=v1.18.15
 ```
 
 Verify connection to the cluster
