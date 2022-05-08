@@ -53,7 +53,7 @@ Use the following commands to test the Redis data:
 Check if domain asked to be initialized (response should be = 1)
 
 ```
-redis-cli exists "worker:initialize:${DOMAIN}"
+redis-cli exists "hostname:initialize:${DOMAIN}"
 ```
 
 Set domain available
