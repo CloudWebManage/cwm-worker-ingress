@@ -1,0 +1,37 @@
+{{- if .Values.service.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cwm-worker-ingress-http
+spec:
+  podSelector:
+    matchLabels:
+      app: cwm-worker-ingress-http
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: {{ .Values.vdns.prometheusMetricsPort }}
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: UDP
+      port: 53
+    {{- if not (eq .Values.vdns.redisHost "localhost") }}
+    - protocol: TCP
+      port: {{ .Values.vdns.redisPort }}
+    {{- end }}
+    {{- if not (eq .Values.vdns.redisWriteHost "localhost") }}
+    - protocol: TCP
+      port: {{ .Values.vdns.redisWritePort }}
+    {{- end }}
+{{- end }}

@@ -53,7 +53,7 @@ Use the following commands to test the Redis data:
 Check if domain asked to be initialized (response should be = 1)
 
 ```
-redis-cli exists "worker:initialize:${DOMAIN}"
+redis-cli exists "hostname:initialize:${DOMAIN}"
 ```
 
 Set domain available
@@ -216,10 +216,10 @@ helm version
 
 ### Deployment
 
-Create a cluster
+Create a cluster:
 
-```
-minikube start --driver=docker --kubernetes-version=v1.16.14
+```shell
+minikube start --driver=docker --kubernetes-version=v1.18.15
 ```
 
 Verify connection to the cluster
