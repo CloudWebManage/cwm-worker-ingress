@@ -260,3 +260,23 @@ Run k8s tests
 ```
 tests/k8s_tests.sh
 ```
+
+## testing VDNS server scale limit
+
+Start with 2 threads
+
+```
+UDP_THREADS=2 DEBUG=yes REDIS_HOST=172.17.0.1 venv/bin/cwm_worker_ingress vdns 10053
+```
+
+Generate load (change number depending on your processing power)
+
+```
+python3 tests/load_generator.py 500
+```
+
+You should see some processes failed like this:
+
+```
+372: returncode 1 output b';; connection timed out; no servers could be reached\n\n\n'
+```
