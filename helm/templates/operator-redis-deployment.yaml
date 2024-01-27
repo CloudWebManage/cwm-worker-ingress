@@ -1,0 +1,31 @@
+{{ if .Values.operatorRedis.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cwm-worker-ingress-operator-redis
+  {{ if .Values.namespace }}namespace: {{ .Values.namespace | quote }}{{ end }}
+spec:
+  minReadySeconds: 5
+  selector:
+    matchLabels:
+      app: cwm-worker-ingress-operator-redis
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  template:
+    metadata:
+      labels:
+        app: cwm-worker-ingress-operator-redis
+    spec:
+      {{ if .Values.operatorRedis.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.operatorRedis.nodeSelector | nindent 8 }}
+      {{ end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if $.Values.operatorRedis.tolerations }}
+      tolerations: {{ toYaml $.Values.operatorRedis.tolerations | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      containers:
+      - name: redis
+        image: {{ .Values.redis.image | quote }}
+        imagePullPolicy: {{ .Values.operatorRedis.imagePullPolicy }}
+        resources: {{ toYaml .Values.operatorRedis.resources | nindent 10 }}
+{{ end }}

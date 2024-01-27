@@ -53,31 +53,31 @@ Use the following commands to test the Redis data:
 Check if domain asked to be initialized (response should be = 1)
 
 ```
-redis-cli exists "hostname:initialize:${DOMAIN}"
+docker exec redis redis-cli exists "hostname:initialize:${DOMAIN}"
 ```
 
 Set domain available
 
 ```
-redis-cli set "worker:available:${DOMAIN}" ""
+docker exec redis redis-cli set "worker:available:${DOMAIN}" ""
 ```
 
-Set domain internal host name to cwm-worker-test.com (You should also set an internal IP different then 127.0.0.1 for these domains in /etc/hosts)
+Set domain internal host name to cwm-worker-test.com (You should also set an internal IP different from 127.0.0.1 for these domains in /etc/hosts)
 
 ```
-redis-cli set "worker:ingress:hostname:${DOMAIN}" '{"http":"cwm-worker-test-http.com","https":"cwm-worker-test-https.com"}'
+docker exec redis redis-cli set "worker:ingress:hostname:${DOMAIN}" '{"http":"cwm-worker-test-http.com","https":"cwm-worker-test-https.com"}'
 ```
 
 Set domain error
 
 ```
-redis-cli set "worker:error:${DOMAIN}" ""
+docker exec redis redis-cli set "worker:error:${DOMAIN}" ""
 ```
 
 Set node healthy
 
 ```
-redis-cli set "node:healthy:testnode0" ""
+docker exec redis redis-cli set "node:healthy:testnode0" ""
 ```
 
 Check node healthy filename exists: `.node_healthy`
@@ -85,7 +85,7 @@ Check node healthy filename exists: `.node_healthy`
 Delete node healthy
 
 ```
-redis-cli del "node:healthy:testnode0"
+docker exec redis redis-cli del "node:healthy:testnode0"
 ```
 
 Check node healthy filename deleted: `.node_healthy`

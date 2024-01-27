@@ -1,0 +1,13 @@
+{{ if .Values.operatorRedis.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: cwm-worker-ingress-operator-redis
+  {{ if .Values.namespace }}namespace: {{ .Values.namespace | quote }}{{ end }}
+spec:
+  ports:
+  - name: "6379"
+    port: 6379
+  selector:
+    app: cwm-worker-ingress-operator-redis
+{{ end }}

@@ -68,3 +68,15 @@ redis:
 
 service:
   enabled: true
+
+operatorRedis:
+  enabled: false
+  # nodeSelector: {}
+  # tolerations: []
+  imagePullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: .05
+      memory: 50Mi
+    limits:
+      memory: 200Mi
