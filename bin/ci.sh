@@ -57,39 +57,51 @@ uci docker tag-push \
     --push-tag-name "ghcr.io/cloudwebmanage/cwm-worker-ingress/nginx:$GITHUB_SHA"
 
 if [ "$(uci github actions get-branch-name)" == "main" ]; then
-    uci docker tag-push \
-        --source-tag-name vdns \
-        --push-tag-name ghcr.io/cloudwebmanage/cwm-worker-ingress/vdns:latest
-    uci docker tag-push \
-        --source-tag-name nginx \
-        --push-tag-name ghcr.io/cloudwebmanage/cwm-worker-ingress/nginx:latest
-    uci kubectl install --version "${KUBECTL_VERSION}" --with-sudo
-    uci minikube install --version "${MINIKUBE_VERSION}" --with-sudo
-    uci helm install --version "${HELM_VERSION}" --with-sudo
-    minikube start --driver=docker --kubernetes-version="${MINIKUBE_KUBERNETES_VERSION}"
-    uci util wait-for --timeout-seconds 240 --timeout-message "waited too long for minikube to start" \
-        "minikube status 2>&1 >/dev/null"
-    uci util wait-for --timeout-seconds 240 --timeout-message "waited too long for minikube node to be ready" \
-        'kubectl get nodes | grep " Ready "'
-    helm upgrade --install --wait cwm-worker-ingress ./helm
-    sleep 5
-    kubectl apply -f tests/k8s-tests.yaml
-    [ "$?" != "0" ] && echo "failed to apply tests/k8s-tests.yaml" && exit 1
-    sleep 10
-    tests/k8s_tests.sh
-    K8S_TESTS_RES="$?"
-    echo K8S_TESTS_RES=$K8S_TESTS_RES
-    POD=$(kubectl get pods | grep cwm-worker-ingress-http- | tee /dev/stderr | cut -d " " -f1)
-    kubectl describe pod tests
-    kubectl describe pod "$POD"
-    echo "-- redis logs --"
-    kubectl logs $POD -c redis
-    echo "-- nginx logs --"
-    kubectl logs $POD -c nginx
-    echo "-- vdns logs --"
-    kubectl logs $POD -c vdns
-    echo "---------------"
-    [ "${K8S_TESTS_RES}" != "0" ] && echo "K8S_TESTS_RES=$K8S_TESTS_RES" && exit 1
+    if ! uci git check-last-commit-message --contains --skip-tests; then
+      uci docker tag-push \
+          --source-tag-name vdns \
+          --push-tag-name ghcr.io/cloudwebmanage/cwm-worker-ingress/vdns:latest
+      uci docker tag-push \
+          --source-tag-name nginx \
+          --push-tag-name ghcr.io/cloudwebmanage/cwm-worker-ingress/nginx:latest
+      uci kubectl install --version "${KUBECTL_VERSION}" --with-sudo
+      uci minikube install --version "${MINIKUBE_VERSION}" --with-sudo
+      uci helm install --version "${HELM_VERSION}" --with-sudo
+      minikube start --driver=docker --kubernetes-version="${MINIKUBE_KUBERNETES_VERSION}"
+      uci util wait-for --timeout-seconds 240 --timeout-message "waited too long for minikube to start" \
+          "minikube status 2>&1 >/dev/null"
+      uci util wait-for --timeout-seconds 240 --timeout-message "waited too long for minikube node to be ready" \
+          'kubectl get nodes | grep " Ready "'
+      helm upgrade --install --wait cwm-worker-ingress ./helm
+      sleep 5
+      kubectl apply -f tests/k8s-tests.yaml
+      [ "$?" != "0" ] && echo "failed to apply tests/k8s-tests.yaml" && exit 1
+      sleep 10
+      tests/k8s_tests.sh
+      K8S_TESTS_RES="$?"
+      echo K8S_TESTS_RES=$K8S_TESTS_RES
+      POD=$(kubectl get pods | grep cwm-worker-ingress-http- | tee /dev/stderr | cut -d " " -f1)
+      kubectl describe pod tests
+      kubectl describe pod "$POD"
+      echo "-- redis logs --"
+      kubectl logs $POD -c redis
+      echo "-- nginx logs --"
+      kubectl logs $POD -c nginx
+      echo "-- vdns logs --"
+      kubectl logs $POD -c vdns
+      echo "---------------"
+      [ "${K8S_TESTS_RES}" != "0" ] && echo "K8S_TESTS_RES=$K8S_TESTS_RES" && exit 1
+    fi
+    uci git checkout \
+        --github-repo-name CloudWebManage/cwm-worker-cluster \
+        --branch-name master \
+        --ssh-key "${CWM_WORKER_CLUSTER_DEPLOY_KEY}" \
+        --path cwm-worker-cluster \
+        --config-user-name cwm-worker-ingress-ci &&\
+    cd cwm-worker-cluster &&\
+    bin/update_cluster_image.py cwm-worker-ingress $GITHUB_SHA --git-commit &&\
+    git push origin master
+    [ "$?" != "0" ] && echo "deploy failed" && exit 1
 fi
 
 exit 0

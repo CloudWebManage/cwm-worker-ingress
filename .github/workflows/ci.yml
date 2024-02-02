@@ -8,6 +8,7 @@ jobs:
     - env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CWM_WORKER_HELM_DEPLOY_KEY: ${{ secrets.CWM_WORKER_HELM_DEPLOY_KEY }}
+        CWM_WORKER_CLUSTER_DEPLOY_KEY: ${{ secrets.CWM_WORKER_CLUSTER_DEPLOY_KEY }}
         HELM_VERSION: "v3.2.4"
         MINIKUBE_VERSION: "v1.21.0"
         MINIKUBE_KUBERNETES_VERSION: "v1.18.15"
