@@ -22,7 +22,37 @@ Install cwm-worker-ingress Python module
 venv/bin/python -m pip install -e .
 ```
 
-### Usage
+### Usage - node health check only
+
+Start a Redis server
+
+```
+docker run -d --rm --name redis -p 6379:6379 redis
+```
+
+Start the VDNS server in health check only mode
+
+```
+DEBUG=yes REDIS_HOST=172.17.0.1 venv/bin/cwm_worker_ingress vdns
+```
+
+Set node healthy
+
+```
+docker exec redis redis-cli set "node:healthy:testnode0" ""
+```
+
+Check node healthy filename exists: `.node_healthy`
+
+Delete node healthy
+
+```
+docker exec redis redis-cli del "node:healthy:testnode0"
+```
+
+Check node healthy filename deleted: `.node_healthy`
+
+### Usage - Full VDNS
 
 Start a Redis server
 
@@ -73,22 +103,6 @@ Set domain error
 ```
 docker exec redis redis-cli set "worker:error:${DOMAIN}" ""
 ```
-
-Set node healthy
-
-```
-docker exec redis redis-cli set "node:healthy:testnode0" ""
-```
-
-Check node healthy filename exists: `.node_healthy`
-
-Delete node healthy
-
-```
-docker exec redis redis-cli del "node:healthy:testnode0"
-```
-
-Check node healthy filename deleted: `.node_healthy`
 
 ## Python module automated tests
 

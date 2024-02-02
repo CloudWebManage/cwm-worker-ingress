@@ -22,10 +22,11 @@ class MainLogs:
     def __init__(self, port):
         self.start_time = datetime.datetime.now()
         self.last_uptime_seconds = 0
+        on_port_msg = f'on port {port}' if port else 'without vdns server'
         if config.DEBUG:
-            self.info("{} starting server in debug mode on port {} with debug verbosity {}".format(self.start_time, port, config.DEBUG_VERBOSITY))
+            self.info("{} starting server in debug mode {} with debug verbosity {}".format(self.start_time, on_port_msg, config.DEBUG_VERBOSITY))
         else:
-            self.info("{} starting server on port {}".format(self.start_time, port))
+            self.info("{} starting server {}".format(self.start_time, on_port_msg))
         self.info("REDIS_HOST={} REDIS_PORT={}".format(config.REDIS_HOST, config.REDIS_PORT))
 
     def info(self, msg):

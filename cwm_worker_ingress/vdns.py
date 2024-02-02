@@ -21,9 +21,10 @@ def update_node_health_file(write_redis_pool):
             os.unlink(config.NODE_HEALTHY_FILENAME)
 
 
-def main(port):
+def main(port=None):
     main_logs = logs.MainLogs(port)
-    main_logs.info("VDNS_PROTOCOL={}".format(config.VDNS_PROTOCOL))
+    if port:
+        main_logs.info("VDNS_PROTOCOL={}".format(config.VDNS_PROTOCOL))
     read_redis_pool = redis.BlockingConnectionPool(
         max_connections=config.REDIS_READ_POOL_MAX_CONNECTIONS, timeout=config.REDIS_READ_POOL_TIMEOUT,
         host=config.REDIS_HOST, port=config.REDIS_PORT
@@ -43,19 +44,22 @@ def main(port):
         assert replicaof_res.startswith(b'OK'), "invalid response from REPLICAOF: %s" % replicaof_res
     main_logs.info("Starting prometheus http server on port {}".format(config.PROMETHEUS_METRICS_PORT))
     prometheus_client.start_http_server(config.PROMETHEUS_METRICS_PORT)
-    servers = [
-        *[dnslib.server.DNSServer(
-            resolver.Resolver(read_redis_pool, write_redis_pool, metrics.Metrics("tcp"), main_logs.get_resolver_logs("tcp")),
-            port=int(port), address='localhost', tcp=True, logger=main_logs.get_dns_logger("tcp")
-        ) for _ in range(config.TCP_THREADS)],
-        *[dnslib.server.DNSServer(
-            resolver.Resolver(read_redis_pool, write_redis_pool, metrics.Metrics("udp"), main_logs.get_resolver_logs("udp")),
-            port=int(port), address='localhost', tcp=False, logger=main_logs.get_dns_logger("udp")
-        ) for _ in range(config.UDP_THREADS)],
-    ]
-    for i, s in enumerate(servers):
-        main_logs.info("starting thread {} ({})".format(i+1, s.server))
-        s.start_thread()
+    if port:
+        servers = [
+            *[dnslib.server.DNSServer(
+                resolver.Resolver(read_redis_pool, write_redis_pool, metrics.Metrics("tcp"), main_logs.get_resolver_logs("tcp")),
+                port=int(port), address='localhost', tcp=True, logger=main_logs.get_dns_logger("tcp")
+            ) for _ in range(config.TCP_THREADS)],
+            *[dnslib.server.DNSServer(
+                resolver.Resolver(read_redis_pool, write_redis_pool, metrics.Metrics("udp"), main_logs.get_resolver_logs("udp")),
+                port=int(port), address='localhost', tcp=False, logger=main_logs.get_dns_logger("udp")
+            ) for _ in range(config.UDP_THREADS)],
+        ]
+        for i, s in enumerate(servers):
+            main_logs.info("starting thread {} ({})".format(i+1, s.server))
+            s.start_thread()
+    else:
+        print("Not starting any VDNS servers")
 
     try:
         while True:

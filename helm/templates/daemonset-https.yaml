@@ -1,3 +1,4 @@
+{{ if .Values.nginx.httpsDaemonsetEnabled }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -100,3 +101,4 @@ spec:
           value: {{ $.Values.vdns.udpThreads | quote }}
         - name: NODE_HEALTHY_FILENAME
           value: "disabled"
+{{ end }}
